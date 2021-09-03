@@ -1,5 +1,4 @@
 import math
-import sys 
 
 class  Nodo:
     def __init__(self,id, x, y):
@@ -7,11 +6,6 @@ class  Nodo:
         self.x = x
         self.y = y
         self.vecinos = {}  # {"id: tiempo"}
-
-        # Para Dijktra 
-        self.visitado = False
-        self.anterior = None
-        self.distancia = sys.maxfloat 
 
     def __repr__(self):
         return str(self.id)
@@ -27,7 +21,7 @@ class Grafo:
     def cargar_nodos(self, path):
         with open(path) as nodos:
             nodos = nodos.readlines()
-            nodos.pop(0) # Sacamos el header
+            nodos.pop(0)
             for n in nodos:
                 n = n.strip().split(";")
                 self.agregar_nodo(int(n[0]), float(n[1]), float(n[2]))

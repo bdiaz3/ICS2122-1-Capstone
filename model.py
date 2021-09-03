@@ -25,7 +25,6 @@ with open("Datos/tabla_distancia.csv","r") as distancia:
     dist = distancia.readlines()
     for linea in dist:
         c.append(linea.strip().split(","))
-print(c)
 
 model = gp.Model('Localización de Ambulancias')
 model.setParam('OutputFlag', False) # turns off solver chatter
@@ -94,7 +93,7 @@ for k in range(1, NITER):
     if valor < best:
         best = valor
         
-    print("%8.0f %8.4f %8.4f %10.4f  %10.4f %4.0f" % (k, valor_old, valor_vecino, Tk))
+    print("%8.0f %8.4f %8.4f %10.4f" % (k, valor_old, valor_vecino, Tk))
 
     # Se actualiza la temperatura
     Tk = alpha*Tk
