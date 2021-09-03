@@ -4,9 +4,9 @@ import sys
 import numpy as np
 import copy
 
-NITER = 1000
+NITER = 50
 
-m = 67 # Numero de centros
+m = 26 # Numero de centros
 n = 16383 # LLamadas
 a = 20 # Ambulancias
 
@@ -22,9 +22,10 @@ alpha = 0.99
 #COSTOS
 c = [] 
 with open("Datos/tabla_distancia.csv","r") as distancia:
-    for linea in distancia:
+    dist = distancia.readlines()
+    for linea in dist:
         c.append(linea.strip().split(","))
-
+print(c)
 
 model = gp.Model('Localización de Ambulancias')
 model.setParam('OutputFlag', False) # turns off solver chatter
