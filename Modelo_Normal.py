@@ -29,7 +29,7 @@ rest_ambulance = model.addConstr((sum(yf[i] for i in M) <= a ), name = "AMBULANC
 inicio  = time.time()
 
 # Descomentar para correr (demora mucho)
-# model.setObjective((sum(sum(float(c[j][i])*xf[i,j] for i in M) for j in N)),GRB.MINIMIZE)
+model.setObjective((sum(sum(float(c[j][i])*xf[i,j] for i in M) for j in N)),GRB.MINIMIZE)
 model.optimize()
 
 print(time.time()- inicio)
