@@ -58,10 +58,9 @@ with open('Datos/eventos.csv') as csv_file:
             line_count += 1
 
 
-    
-#plt.plot(COORDENADA_X_ARCOS, COORDENADA_Y_ARCOS)
+ 
 plt.scatter(COORDENADA_X_NODOS, COORDENADA_Y_NODOS, s=0.5)
-#plt.scatter(COORDENADA_X_EVENTOS, COORDENADA_Y_EVENTOS, s=0.1, c = 'orange')
+plt.scatter(COORDENADA_X_EVENTOS, COORDENADA_Y_EVENTOS, s=0.1, c = 'orange')
 plt.scatter(COORDENADA_X_CENTROS, COORDENADA_Y_CENTROS, c = 'red', s=3)
 plt.scatter(COORDENADA_X_BASES, COORDENADA_Y_BASES, c = 'blue', s=3)
 plt.legend(['Nodos','Eventos','Centros','Bases'])
@@ -77,7 +76,6 @@ with open('Datos/arcos_coordenados.csv') as csv_file:
             p1y = float(row[1])
             p2x = float(row[2])
             p2y = float(row[3])
-            #print(p2x,p2y)
             plt.plot([p1x, p2x],[p1y, p2y], c="lightseagreen", linewidth=0.1)
             line_count += 1
 ax = plt.axes()
