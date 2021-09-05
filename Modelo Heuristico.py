@@ -28,7 +28,7 @@ with open("Datos/tabla_distancia.csv","r") as distancia:
 model = gp.Model('Localización de Ambulancias')
 model.setParam('OutputFlag', False) # turns off solver chatter
 
-xf = model.addVars(M,N,vtype=GRB.BINARY) # Binaria si al evento i se le asocia la base j
+xf = model.addVars(M,N,vtype=GRB.BINARY) # Binaria si a la base i se le asocia evento j
 
 # CONFIGURACIÓN INICIAL
 y = [0.0]*m
