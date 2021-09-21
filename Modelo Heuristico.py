@@ -3,10 +3,10 @@ from gurobipy import GRB
 import numpy as np
 import copy
 
-NITER = 50
+NITER = 500
 
-m = 26 # Numero de centros
-n = 16383 # LLamadas
+m = 26 # Numero de bases
+n = 22117 # LLamadas
 a = 20 # Ambulancias
 
 M = range(m)
@@ -23,7 +23,8 @@ c = []
 with open("Datos/tabla_distancia.csv","r") as distancia:
     dist = distancia.readlines()
     for linea in dist:
-        c.append(linea.strip().split(","))
+        c.append(linea.strip().split(",")[1:])
+
 
 model = gp.Model('Localización de Ambulancias')
 model.setParam('OutputFlag', False) # turns off solver chatter
@@ -44,11 +45,12 @@ rest_assign = model.addConstrs(((sum(xf[i,j] for j in N) <= n*y[i]) for i in M),
 
 # MODELO
 
-model.setObjective((sum(sum(float(c[j][i])*xf[i,j] for i in M) for j in N)),GRB.MINIMIZE)
+model.setObjective((sum(sum(float(c[j][i])*xf[i,j] for i in M) for j in N)), GRB.MINIMIZE)
 model.optimize()
 
 valor = model.objVal
 best = valor
+mejor_y = y
 
 # Simmulated Annealing
 
@@ -91,6 +93,7 @@ for k in range(1, NITER):
         
     if valor < best:
         best = valor
+
         
     print("%8.0f %8.4f %8.4f %10.4f" % (k, valor_old, valor_vecino, Tk))
 
@@ -98,13 +101,13 @@ for k in range(1, NITER):
     Tk = alpha*Tk
     
 print('\n mejor valor encontrado: ',best)
-print(y)
+
 
 with open("Datos/output.csv","w") as output:
     for i in range(len(y)):
         if i != len(y)-1:
             output.write(str(y[i]))
-            output.write(";")
+            output.write(",")
         else:
             output.write(str(y[i]))
 
