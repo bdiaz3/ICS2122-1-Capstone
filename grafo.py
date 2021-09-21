@@ -40,12 +40,12 @@ class Grafo:
     def agregar_nodo(self, id, x, y):
         self.nodos[id] = Nodo(id,x,y)
 
-    def agregar_arco(self, id_origen, id_destino, velocidades):
+    def agregar_arco(self, id_origen, id_destino, tiempo):
         n_origen = self.nodos[id_origen]
         n_destino = self.nodos[id_destino]
         
-        n_origen.vecinos[id_destino] = velocidades
-        n_destino.vecinos[id_origen] = velocidades
+        n_origen.vecinos[id_destino] = tiempo
+        n_destino.vecinos[id_origen] = tiempo
     
     def distancia(self, id_origen, id_destino):
         origen = self.nodos[id_origen]
