@@ -1,4 +1,7 @@
 import math
+from collections import deque
+from copy import copy
+
 
 class  Nodo:
     def __init__(self,id, x, y):
@@ -6,6 +9,9 @@ class  Nodo:
         self.x = x
         self.y = y
         self.vecinos = {}  # {"id: tiempo"}
+        self.color = "White"
+        self.tiempo = float("Infinity")
+        self.elegido = None
 
     def __repr__(self):
         return str(self.id)
@@ -36,7 +42,6 @@ class Grafo:
                 distancia = self.distancia(int(a[0]),int(a[1]))
                 self.agregar_arco(int(a[0]), int(a[1]), distancia/velocidad)
             
-
     def agregar_nodo(self, id, x, y):
         self.nodos[id] = Nodo(id,x,y)
 
@@ -51,9 +56,42 @@ class Grafo:
         origen = self.nodos[id_origen]
         destino = self.nodos[id_destino]
         return math.sqrt((origen.x-destino.x)**2 + (origen.y-destino.y)**2)
-    
-    
 
+    # Este metodo usa Dijkstra para encontrar la distancia minima desde "id_inicio" hasta todos los
+    # otros nodos del Gráfo. Despues retorna la distancia minima "id_destino" y reinicia el grafo.
+    def tiempo_minimo(self, id_inicio, id_destino):
+        inicio = self.nodos.get(id_inicio)
+        if inicio != None:
+            por_visitar = deque([inicio])
+            inicio.color = "Gray"
+            inicio.tiempo = 0
+
+            while len(por_visitar)> 0:
+                actual = por_visitar.popleft()
+                for id_vecino,tiempo in actual.vecinos.items():
+                    vecino = self.nodos[id_vecino]
+                    if vecino.color == "White" or vecino.color == "Gray":
+
+                        if vecino.tiempo > actual.tiempo + tiempo:
+                            vecino.tiempo = actual.tiempo + tiempo
+                            vecino.elegido = actual.id
+                        if vecino.color == "White":
+                            vecino.color = "Gray"
+                            por_visitar.append(vecino)
+                actual.color = "Black"
+
+            valor = copy(self.nodos[id_destino].tiempo)
+            self.reiniciar_caminos()
+            return valor
+
+    def reiniciar_caminos(self):
+        for nodo in self.nodos.values():
+            nodo.color = "White"
+            nodo.tiempo = float("Infinity")
+            nodo.elegido = None
 
 if __name__ == "__main__":
     grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
+    print(grafo.tiempo_minimo(0, 22))
+
+ 
