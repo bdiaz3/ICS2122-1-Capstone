@@ -89,6 +89,9 @@ class Grafo:
             nodo.color = "White"
             nodo.tiempo = float("Infinity")
             nodo.elegido = None
+    
+    def nodo_cercano(self, x, y):
+        pass
 
 if __name__ == "__main__":
     grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
