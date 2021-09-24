@@ -43,15 +43,15 @@ class Evento:
         #timedelta(minutes=int(uniform(0,1440)))
         
     def generar_coordenadas_llamadas(self):
-        self.x = uniform(-71349005853253000, 79640174915830800)
-        self.y = uniform(-77026387347217800, 74964947847257300)
+        self.x = uniform(-71.349005853253000, 79.640174915830800)
+        self.y = uniform(-77.026387347217800, 74.964947847257300)
         
     def __str__(self):
         return "Hora llegada {} llamada {}"-format(self.hora_llegada, self.id)
     
 class System:
     def __init__(self, tiempo_simulacion, tasa_llegda, capacidad):
-        date = datetime(2021, 21, 9)
+        date = datetime(2021, 12, 9)
         newdate = date.replace(hour=0)
         
         #seteamos variable de tiempo
@@ -161,13 +161,26 @@ class System:
                 
 cantidad_llamadas = 5000
 
+contador = 0
 llamadas = list()
-date = datetime(2021, 21, 9)
+""" hora_llamadas = list() """
+date = datetime(2021, 12, 9)
 newdate = date.replace(hour=0)
-for i in range(cantidad_llamadas):
-    llamadas.append(int(gammavariate(8.7317,90.558)/60))
+while contador != cantidad_llamadas:
+    value = float(gammavariate(8.7317,90.558)/60)
+    if value > 0 and value < 24:
+        contador += 1
+        """ minutes = value*60
+        minutes = int(minutes) """
+        """ hours, minutes = divmod(minutes, 60) """
+        """ hora_llamada = f"{hours}:{minutes}" """
+        llamadas.append(value)
+        """ hora_llamadas.append(hora_llamada) """
+
     
-#print(llamadas)
+print(max(llamadas))
+""" print(hora_llamadas) """
+print(contador)
         #llamadas.append(newdate + timedelta(minutes=int(gammavariate(8.7317,90.558,0,0))))
         
 llamada_x_hora = [0 for i in range(24)]
@@ -175,6 +188,6 @@ llamada_x_hora = [0 for i in range(24)]
 contador = 0
 for i in range(24):
     for llamada in llamadas:
-        if i == llamada:
+        if i == int(llamada):
             llamada_x_hora[i] += 1
 print(llamada_x_hora)
