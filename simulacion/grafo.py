@@ -58,8 +58,8 @@ class Grafo:
         return math.sqrt((origen.x-destino.x)**2 + (origen.y-destino.y)**2)
 
     # Este metodo usa Dijkstra para encontrar la distancia minima desde "id_inicio" hasta todos los
-    # otros nodos del Gráfo. Despues retorna la distancia minima "id_destino" y reinicia el grafo.
-    def tiempo_minimo(self, id_inicio, id_destino):
+    # otros nodos del Gráfo. # Networkz
+    def tiempo_minimo(self, id_inicio):
         inicio = self.nodos.get(id_inicio)
         if inicio != None:
             por_visitar = deque([inicio])
@@ -80,9 +80,6 @@ class Grafo:
                             por_visitar.append(vecino)
                 actual.color = "Black"
 
-            valor = copy(self.nodos[id_destino].tiempo)
-            self.reiniciar_caminos()
-            return valor
 
     def reiniciar_caminos(self):
         for nodo in self.nodos.values():
@@ -91,10 +88,17 @@ class Grafo:
             nodo.elegido = None
     
     def nodo_cercano(self, x, y):
-        pass
+        for nodo in  self.nodos.values():
+            distancia = float("Infinity")
+            cercano = None
+            nueva_dist = math.sqrt((x-nodo.x)**2 + (y-nodo.y)**2)
+            if nueva_dist < distancia:
+                distancia = nueva_dist
+                cercano = nodo
+        return cercano
 
 if __name__ == "__main__":
     grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
-    print(grafo.tiempo_minimo(0, 22))
+    
 
  
