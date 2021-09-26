@@ -41,6 +41,4 @@ print(time.time()- inicio)
 
 valor_optimo = model.objVal
 
-
-
 print( '\n Objectivo modelo completo =', valor_optimo,'\n')

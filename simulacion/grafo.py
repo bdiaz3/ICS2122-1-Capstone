@@ -88,9 +88,9 @@ class Grafo:
             nodo.elegido = None
     
     def nodo_cercano(self, x, y):
+        distancia = float("Infinity")
+        cercano = None
         for nodo in  self.nodos.values():
-            distancia = float("Infinity")
-            cercano = None
             nueva_dist = math.sqrt((x-nodo.x)**2 + (y-nodo.y)**2)
             if nueva_dist < distancia:
                 distancia = nueva_dist
