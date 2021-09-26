@@ -1,0 +1,1 @@
+            print(min_ambulancias[0],self.prox_evento_llega)
