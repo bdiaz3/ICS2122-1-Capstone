@@ -18,6 +18,10 @@ class Ambulancia:
         self.id = self.incr()
         self.disponible = True
         self.evento_asignado = None
+        
+        
+        #setamos variabels para registrar datos
+        self.llamadas_atendidas = 0
 
 class Base:
     def __init__(self, x, y, nodo_cercano):
@@ -52,7 +56,7 @@ class Base:
         self.ambulancias_utilizadas += 1
         ambulancia_seleccionada.disponible = False
         ambulancia_seleccionada.evento_asignado = evento
-        print(f"A la Ambulancia {ambulancia_seleccionada.id} se le asignó el evento {evento.id}")
+        print(f"A la Ambulancia {ambulancia_seleccionada.id} se le asigna el evento {evento.id}\n")
         return ambulancia_seleccionada.id
     
     def terminar_atencion(self, id_ambulancia):
@@ -133,11 +137,11 @@ class Control:
         bases =  cargar_bases()
         for base in bases:
             nodo_cercano = self.grafo.nodo_cercano(base[0],base[1])
-            self.bases.append(Base(base[0], base[1], nodo_cercano))
+            self.bases.append(Base(base[0], base[1], nodo_cercano)) #se asigna nodo más cercano a la base
         for centro in cargar_centros():
-            nodo_cercano = self.grafo.nodo_cercano(centro[0],centro[1])
+            nodo_cercano = self.grafo.nodo_cercano(centro[0],centro[1]) #se asigna nodo más cercano al centro
             self.centros.append(CentroMedico(centro[0],centro[1],nodo_cercano))
-
+        print("SE CARGAN LAS BASES Y LOS CENTROS EN LA CIUDAD\n")
 class Simmulacion:
 
     def __init__(self):
@@ -157,6 +161,9 @@ class Simmulacion:
         self.prox_evento_llega = self.tiempo_actual + timedelta(minutes = int(npr.exponential(1/TASA_LLEGADA)))
         self.tiempos_ambulancias = [] # Lista de la forma [[tiempo, id_mbulancia, base_asignada]]
 
+        #Seteamos datos que utilizaremos para llevar registro 
+        self.atenciones = 0 #se considera el evento entero
+        
     @property
     def proxima_accion(self):
         if len(self.tiempos_ambulancias) > 0 :
@@ -171,16 +178,27 @@ class Simmulacion:
         self.tiempo_actual = self.prox_evento_llega
         self.prox_evento_llega = self.tiempo_actual + timedelta(minutes = int(npr.exponential(1/TASA_LLEGADA)))
         evento = Evento(self.tiempo_actual)
-        print(f"Se genera el evento {evento.id} en {(evento.x , evento.y)}")
+        print(f"\nSe genera el evento {evento.id} en la ubicación {(evento.x , evento.y)}\n")
         # Asigna la base más cercana al evento con ambulancias disponibles
         tiempo_total, id_ambulancia, base_asignada = self.control.asignar_base(evento)
         self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
 
     def fin_atencion(self, tiempo, id_ambulancia, base_asignada):
         self.tiempo_actual = tiempo
+        base_asignada.ambulancias[id_ambulancia].llamadas_atendidas += 1
+        
         base_asignada.terminar_atencion(id_ambulancia)
+        
+        #############################
+        print(f"La ambulancia {id_ambulancia} ha finalizado la atención de un evento a las {tiempo}")
+        print(f"La ambulancia {id_ambulancia} ha realizado {base_asignada.ambulancias[id_ambulancia].llamadas_atendidas} atenciones")
+        
+        
+        
 
     def simular(self):
+        print("COMIENZA LA SIMULACIÓN\n")
+        
         while self.tiempo_actual < self.tiempo_maximo:
             estado, parametros  = self.proxima_accion
             if estado == "Fin Atencion":
@@ -188,7 +206,18 @@ class Simmulacion:
                 self.fin_atencion(tiempo, id_ambulancia, base_asignada)
             elif estado == "Generar evento":
                 self.llegar_evento()
-    
+        
+        for base in self.control.bases:
+            contador = 0
+            for ambulancia in base.ambulancias.values():
+                contador += ambulancia.llamadas_atendidas
+                self.atenciones += ambulancia.llamadas_atendidas
+            print(f"La base atendió {contador} llamadas en total")
+                
+        print(f"\n TIEMPO TOTAL TRANSCURRIDO EN LA SIMULACIÓN {self.tiempo_actual}")
+        print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
+        print("FIN SIMULACIÓN")
+        
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
