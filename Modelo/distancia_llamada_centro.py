@@ -1,11 +1,13 @@
 import pandas as pd
 import math
 from grafo import Grafo
+import numpy as np
 
 #devevent = pd.read_csv("eventos.csv", sep=';')
 #dcenter = pd.read_csv("centros.csv", sep=';')
 
 data = []
+data_2 = list()
 events = []
 bases = []
 grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
@@ -27,16 +29,34 @@ def dis(x1, x2, y1, y2):
     return distancia
 
 #valor = float('inf')
-for i in events:
-    nodo_evento = grafo.nodo_cercano(float(i[0]),float(i[1]))
-    grafo.tiempo_minimo(nodo_evento.id)
-    list_i = []
-    for j in bases:
-        nodo_base = grafo.nodo_cercano(float(j[0]),float(j[1]))
-        list_i.append(nodo_base.tiempo)
-    data.append(list_i)
+# for i in events:
+#     nodo_evento = grafo.nodo_cercano(float(i[0]),float(i[1]))
+#     grafo.tiempo_minimo(nodo_evento.id)
+#     list_i = []
+#     for j in bases:
+#         nodo_base = grafo.nodo_cercano(float(j[0]),float(j[1]))
+#         list_i.append(nodo_base.tiempo)
+#     data.append(list_i)
+#     grafo.reiniciar_caminos()
+contador = 0
+for j in bases:
+    nodo_base = grafo.nodo_cercano(float(j[0]), float(j[1]))
+    grafo.tiempo_minimo(nodo_base.id)
+    list_j = []
+    for i in events:
+        nodo_evento = grafo.nodo_cercano(float(i[0]),float(i[1]))
+        list_j.append(nodo_evento.tiempo)
+    #contador += 1
+    #print(contador)
+    data_2.append(list_j)
     grafo.reiniciar_caminos()
+    
 
+#data_2 = [[row[i] for row in data_2] for i in range(len(data_2[0]))]
+data_2_transpose = np.transpose(data_2)
+    
+df = pd.DataFrame(data_2_transpose)
+df.to_csv("tabla_tiempos.csv")
 #with open("distancias_centrs_eventos.csv", "w") as file:
     #for linea in range(len(data)):
         #for elem in range(linea):
@@ -46,8 +66,8 @@ for i in events:
             #else:
                 #file.write(str(data[linea][elem]) + "\n")
     
-df = pd.DataFrame(data)
-df.to_csv("tabla_tiempos.csv")
+# df = pd.DataFrame(data)
+# df.to_csv("tabla_tiempos.csv")
 #with open("distancias_centrs_eventos.csv", "w") as file:
     #for linea in data:
         #for elem in linea:

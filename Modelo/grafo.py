@@ -39,18 +39,18 @@ class Grafo:
             for a in arcos:
                 a = a.strip().split(";")
                 velocidad = sum(float(x) for x in a[2:])/len(a[2:])
-                distancia = self.distancia(int(a[0]),int(a[1]))
-                self.agregar_arco(int(a[0]), int(a[1]), distancia/velocidad)
+                distancia = self.distancia(float(a[0]),float(a[1]))
+                if distancia != 0:
+                    # Multiplicamos por 60 para pasarlo a minutos
+                    self.agregar_arco(float(a[0]), float(a[1]), 60*distancia/velocidad)
             
     def agregar_nodo(self, id, x, y):
         self.nodos[id] = Nodo(id,x,y)
 
     def agregar_arco(self, id_origen, id_destino, tiempo):
-        n_origen = self.nodos[id_origen]
-        n_destino = self.nodos[id_destino]
-        
+        n_origen = self.nodos[id_origen] 
         n_origen.vecinos[id_destino] = tiempo
-        n_destino.vecinos[id_origen] = tiempo
+
     
     def distancia(self, id_origen, id_destino):
         origen = self.nodos[id_origen]
@@ -65,13 +65,11 @@ class Grafo:
             por_visitar = deque([inicio])
             inicio.color = "Gray"
             inicio.tiempo = 0
-
             while len(por_visitar)> 0:
                 actual = por_visitar.popleft()
                 for id_vecino,tiempo in actual.vecinos.items():
                     vecino = self.nodos[id_vecino]
                     if vecino.color == "White" or vecino.color == "Gray":
-
                         if vecino.tiempo > actual.tiempo + tiempo:
                             vecino.tiempo = actual.tiempo + tiempo
                             vecino.elegido = actual.id
