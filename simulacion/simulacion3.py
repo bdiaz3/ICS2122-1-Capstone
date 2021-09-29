@@ -1,8 +1,9 @@
 import numpy.random as npr
 from grafo import Grafo
+import time
 import copy
 from collections import deque
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, TIEMPO_DERIVACION, MU_ATENCION, SIGMA_ATENCION, MAX_X, MAX_Y, MIN_X, MIN_Y
 from cargar_datos import cargar_bases, cargar_centros
 
@@ -185,6 +186,7 @@ class Simmulacion:
     @property
     def proxima_accion(self):
         print(f"Proxima Acción")
+        print(self.prox_evento_llega)
         if len(self.tiempos_ambulancias) > 0 :
             self.tiempos_ambulancias.sort(key = lambda x: x[0])
             if self.tiempos_ambulancias[0][0] < self.prox_evento_llega:
@@ -233,6 +235,7 @@ class Simmulacion:
 
     def simular(self):
         print("COMIENZA LA SIMULACIÓN\n")
+        tiempo_inicial = time.time()
         while self.tiempo_actual < self.tiempo_maximo:
             estado, parametros  = self.proxima_accion
             if estado == "Fin Atencion":
@@ -249,11 +252,11 @@ class Simmulacion:
                 contador += ambulancia.llamadas_atendidas
                 self.atenciones += ambulancia.llamadas_atendidas
 
-            # print(f"La base {base.id} atendió {contador} llamadas en total")
-        # print(len(self.cola))      
-        #print(f"\n TIEMPO TOTAL TRANSCURRIDO EN LA SIMULACIÓN {self.tiempo_actual}")
-        #print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
-        #print("FIN SIMULACIÓN")
+            print(f"La base {base.id} atendió {contador} llamadas en total")
+        print(f"\nLARGO COLA FINAL {len(self.cola)}")      
+        print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
+        print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
+        print("FIN SIMULACIÓN")
         
     def crear_entidades(self):
         self.control = Control()

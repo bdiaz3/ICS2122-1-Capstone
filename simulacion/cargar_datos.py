@@ -1,7 +1,9 @@
+from parametros import BASES_MODELO_1, BASES_MODELO
+
 def cargar_bases():
     with open("Datos/bases.csv") as bases:
         lista_bases = []
-        bases_utilizadas = [1,1,0,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,0,0]
+        bases_utilizadas = BASES_MODELO
         lineas = bases.readlines()
         for l in range(len(lineas)-1):
             if l != 0:

@@ -51,7 +51,7 @@ for j in bases:
     data_2.append(list_j)
     grafo.reiniciar_caminos()
     
-
+print("Terminó")
 #data_2 = [[row[i] for row in data_2] for i in range(len(data_2[0]))]
 data_2_transpose = np.transpose(data_2)
     
