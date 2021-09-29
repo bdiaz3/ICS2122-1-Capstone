@@ -89,6 +89,7 @@ class Evento:
     def __init__(self, tiempo_inicio):
         self.id = self.incr()
         self.tiempo_inicio = tiempo_inicio
+        # Agregar de supuesto 
         self.x = npr.uniform(MIN_X, MAX_X)
         self.y = npr.uniform(MIN_Y, MAX_Y)
         self.tiempo_espera = 0
@@ -127,8 +128,8 @@ class Control:
             # print("Entra a base disponible")
             bases_disponibles.sort(key=lambda x: x.nodo_cercano.tiempo)
             base_asignada = bases_disponibles[0]
-            tiempo = [base.nodo_cercano.tiempo for base in bases_disponibles]
             tiempo_base = copy.copy(base_asignada.nodo_cercano.tiempo)
+
             # Seleccionamos el centro medico de menor tiempo
             centros = [centro for centro in self.centros]
             centros.sort(key=lambda x: x.nodo_cercano.tiempo)
@@ -266,3 +267,9 @@ class Simmulacion:
 if __name__ == "__main__":
     sim = Simmulacion()
     sim.simular()
+
+# Histogramas de los tiempos de respuestas 
+# Valores promedio de los eventos en replicas 
+# Corremos la simulación una semana, sacamos un histograma y sacamos el promedio. 
+# Simulamos 2 semanas sacamos promedio. Simulamos 3 semanas sacamos promedio
+# Nombrar supuestos
