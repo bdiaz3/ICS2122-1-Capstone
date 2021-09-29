@@ -20,7 +20,7 @@ alpha = 0.99
 
 #COSTOS
 c = [] 
-with open("Datos/tabla_distancia.csv","r") as distancia:
+with open("Datos/tabla_tiempos.csv","r") as distancia:
     dist = distancia.readlines()
     for linea in dist:
         c.append(linea.strip().split(",")[1:])
@@ -50,7 +50,7 @@ model.optimize()
 
 valor = model.objVal
 best = valor
-mejor_y = y
+
 
 # Simmulated Annealing
 
