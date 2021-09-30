@@ -24,6 +24,8 @@ class Ambulancia:
         
         #setamos variabels para registrar datos
         self.llamadas_atendidas = 0
+        self.tiempo_total_ocupada = 0
+        
 
 class Base:
     # Generador de ID
@@ -143,9 +145,12 @@ class Control:
             self.grafo.tiempo_minimo(centro_asignado.nodo_cercano.id)
             tiempo_retorno = base_asignada.nodo_cercano.tiempo
             self.grafo.reiniciar_caminos()
+            #sumamos al tiempo ocupado de la ambulancia el tiempo que demorará en este evento
+            base_asignada.ambulancias[id_ambulancia].tiempo_total_ocupada += (tiempo_base + evento.tiempo_despacho + 
+                                                        evento.tiempo_derivacion + evento.tiempo_atencion + tiempo_centro + tiempo_retorno)
 
             return (tiempo_base + evento.tiempo_despacho + 
-                    evento.tiempo_derivacion + evento.tiempo_atencion + tiempo_centro + tiempo_retorno                                                                 , id_ambulancia, base_asignada)
+                    evento.tiempo_derivacion + evento.tiempo_atencion + tiempo_centro + tiempo_retorno, id_ambulancia, base_asignada)
         # Si no hay ambulancias disponibles
         return (None, None, None)
 
@@ -205,6 +210,9 @@ class Simmulacion:
         if  len(self.cola) == 0:
             # Asigna la base más cercana al evento con ambulancias disponiblesS
             tiempo_total, id_ambulancia, base_asignada = self.control.asignar_base(evento)
+            evento.tiempo_espera = self.tiempo_actual-evento.tiempo_inicio
+            print(f"El tiempo de respuesta del evento {evento.id} fue de {evento.tiempo_espera}")
+            #aqui escribir tiempo de respuesta en excel forma id_evento; tiempo de repsuesta
             # Habían ambulancias disponibles
             if tiempo_total != None:
                 print(f"Hora actual:{self.tiempo_actual}")
@@ -226,6 +234,9 @@ class Simmulacion:
     def actualizar_cola(self):
         print(f"Se actualiza la cola")
         evento = self.cola.popleft()
+        evento.tiempo_espera = self.tiempo_actual-evento.tiempo_inicio
+        print(f"El tiempo de respuesta del evento {evento.id} fue de {evento.tiempo_espera}")
+        #aqui escribir tiempo de respuesta en excel forma id_evento; tiempo de repsuesta
         print(f"Nueva cola: {self.cola}")
         # Asigna la base más cercana al evento con ambulancias disponibles
         tiempo_total, id_ambulancia, base_asignada = self.control.asignar_base(evento)
@@ -252,6 +263,7 @@ class Simmulacion:
             for ambulancia in base.ambulancias.values():
                 contador += ambulancia.llamadas_atendidas
                 self.atenciones += ambulancia.llamadas_atendidas
+                print(f"La ambulancia {ambulancia.id} estuvo ocupada un tiempo de: {ambulancia.tiempo_total_ocupada} minutos")
 
             print(f"La base {base.id} atendió {contador} llamadas en total")
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
