@@ -1,193 +1,268 @@
-from random import uniform, random, seed, randint, gauss, expovariate, gammavariate
-from typing import Collection
-import numpy as np
-import time as tm
-import pandas as pd
-import math 
+import numpy.random as npr
+from grafo import Grafo
+import time
+import copy
 from collections import deque
-from datetime import datetime, time, timedelta
-from matplotlib import pyplot as py
-#from scipy.stats import fisk, gamma
+from datetime import datetime, timedelta
+from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, TIEMPO_DERIVACION, MU_ATENCION, SIGMA_ATENCION, MAX_X, MAX_Y, MIN_X, MIN_Y
+from cargar_datos import cargar_bases, cargar_centros
 
-seed(1)
 
-events = list()
-prob_events = list()
+class Ambulancia:
+    # Generador de ID
+    ID = 0
+    @classmethod
+    def incr(self):
+        self.ID += 1
+        return self.ID
 
-with open("Datos/eventos.csv", 'r') as file:
-    next(file)
-    for line in file:
-        linea = line.strip().split(";")
-        events.append(linea)
+    def __init__(self):
+        self.id = self.incr()
+        self.disponible = True
+        self.evento_asignado = None
+        
+        
+        #setamos variabels para registrar datos
+        self.llamadas_atendidas = 0
 
-prob_events = []
+class Base:
+    # Generador de ID
+    ID = 0
+    @classmethod
+    def incr(self):
+        self.ID += 1
+        return self.ID
+
+    def __init__(self, x, y, nodo_cercano):
+        self.id = self.incr()
+        self.x = x
+        self.y = y
+        self.nodo_cercano = nodo_cercano
+        self.ambulancias = {} # ID, ambulancia 
+        self.ambulancias_disponibles = True
+        self._ambulancias_utilizadas = 0
+        
+        # Se crea 1 ambulancia por base
+        ambulancia = Ambulancia()
+        self.ambulancias[ambulancia.id] = ambulancia
+
+    @property
+    def ambulancias_utilizadas(self):
+        return self._ambulancias_utilizadas
+
+    @ambulancias_utilizadas.setter
+    def ambulancias_utilizadas(self, other):
+
+        if other >= len(self.ambulancias.values()):
+            self._ambulancias_utilizadas = len(self.ambulancias)
+            self.ambulancias_disponibles = False
+
+        elif other < len(self.ambulancias.values()):
+            self._ambulancias_utilizadas = other
+            self.ambulancias_disponibles = True
+
+    def asignar_ambulancia(self, evento):
+        ambulancia_seleccionada = [ambulancia for ambulancia in self.ambulancias.values() if ambulancia.disponible][0]
+        self.ambulancias_utilizadas += 1
+        ambulancia_seleccionada.disponible = False
+        ambulancia_seleccionada.evento_asignado = evento
+        print(f"A la Ambulancia {ambulancia_seleccionada.id} se le asigna el evento {evento.id}\n")
+        return ambulancia_seleccionada.id
+    
+    def terminar_atencion(self, id_ambulancia):
+        print(f"Terminó la Ambulancia {self.ambulancias[id_ambulancia].id} el evento {self.ambulancias[id_ambulancia].evento_asignado.id}\n")
+        self.ambulancias[id_ambulancia].disponible = True
+        self.ambulancias[id_ambulancia].evento_asignado = None
+        self.ambulancias_utilizadas -= 1
+
+    def __repr__(self):
+        return f"{str(self.x) ,str(self.y)}"
 
 class Evento:
-    _id = 0
-    def __init__(self, tiempo_instance):
-        Evento._id += 1
-        self.id = Evento._id
-        self.hora_llegada = tiempo_instance
-        self.tiempo_despacho = None #ajustar tiempos despacho a cierta distribución
-        self.tiempo_derivacion = None #ajustar tiempos derivacion a cierta distribución
-        self.tiempo_atencion = None #ajustar tiempos atencion a cierta distribución
-        self.ambulancia = None #ambulancia asignada
-        self.x = None
-        self.y = None
-        # self.tiempo_despacho = None
-        # self.tiempo_derivacion = None
-        # self.tiempo_atencion = None
-    
-    def generar_tiempo_abandono_sistema(self, tiempo_actual):
-        self.hora_llegada = tiempo_actual + self.tiempo_derivacion # tiempo total que demora cumplir evento
-        #timedelta(minutes=int(uniform(0,1440)))
-        
-    def generar_coordenadas_llamadas(self):
-        self.x = uniform(-71.349005853253000, 79.640174915830800)
-        self.y = uniform(-77.026387347217800, 74.964947847257300)
-        
-    def __str__(self):
-        return "Hora llegada {} llamada {}"-format(self.hora_llegada, self.id)
-    
-class System:
-    def __init__(self, tiempo_simulacion, tasa_llegda, capacidad):
-        date = datetime(2021, 12, 9)
+    # Generador de ID
+    ID = 0
+    @classmethod
+    def incr(self):
+        self.ID += 1
+        return self.ID
+
+    def __init__(self, tiempo_inicio):
+        self.id = self.incr()
+        self.tiempo_inicio = tiempo_inicio
+        self.x = npr.uniform(MIN_X, MAX_X)
+        self.y = npr.uniform(MIN_Y, MAX_Y)
+        self.tiempo_espera = 0
+        self.tiempo_despacho = npr.exponential(TIEMPO_DESPACHO) # Desde que ocurre la llamada hasta que se encuentra la ambulancia
+        self.tiempo_derivacion = npr.exponential(TIEMPO_DERIVACION) # Tiempo de traslado al centro de salud 
+        self.tiempo_atencion = npr.lognormal(MU_ATENCION, SIGMA_ATENCION) # AtencLlega la ambulancia y se atiende 
+       
+    def __repr__(self):
+        return str(self.id)
+
+class CentroMedico:
+    def __init__(self, x, y, nodo_cercano):
+        self.x = x
+        self.y = y
+        self.nodo_cercano = nodo_cercano
+
+class Control:
+    def __init__(self):
+        self.bases = []
+        self.centros = []
+        self.grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
+
+    def asignar_base(self, evento):
+
+        # Obtenemos el nodo cercano al evento
+        nodo_evento = self.grafo.nodo_cercano(evento.x, evento.y)
+        # Corremos Dijsktra
+        self.grafo.tiempo_minimo(nodo_evento.id)
+
+                
+        # Seleccionamos la base a menor tiempo
+        bases_disponibles  = [base for base in self.bases if base.ambulancias_disponibles]
+
+        # Si es que hay ambulancias disponibles
+        if bases_disponibles:
+            # print("Entra a base disponible")
+            bases_disponibles.sort(key=lambda x: x.nodo_cercano.tiempo)
+            base_asignada = bases_disponibles[0]
+            tiempo = [base.nodo_cercano.tiempo for base in bases_disponibles]
+            tiempo_base = copy.copy(base_asignada.nodo_cercano.tiempo)
+            # Seleccionamos el centro medico de menor tiempo
+            centros = [centro for centro in self.centros]
+            centros.sort(key=lambda x: x.nodo_cercano.tiempo)
+            centro_asignado = centros[0]
+            tiempo_centro = copy.copy(centro_asignado.nodo_cercano.tiempo)
+
+            id_ambulancia = base_asignada.asignar_ambulancia(evento)
+            self.grafo.reiniciar_caminos()
+
+            # Corresmos Dijsktra para ir del Centro Medico a la Base
+            self.grafo.tiempo_minimo(centro_asignado.nodo_cercano.id)
+            tiempo_retorno = base_asignada.nodo_cercano.tiempo
+            self.grafo.reiniciar_caminos()
+
+            return (tiempo_base + evento.tiempo_despacho + 
+                    evento.tiempo_derivacion + evento.tiempo_atencion + tiempo_centro + tiempo_retorno                                                                 , id_ambulancia, base_asignada)
+        # Si no hay ambulancias disponibles
+        return (None, None, None)
+
+    def cargar_entidades(self):
+        bases =  cargar_bases()
+        for base in bases:
+            nodo_cercano = self.grafo.nodo_cercano(base[0],base[1])
+            self.bases.append(Base(base[0], base[1], nodo_cercano)) #se asigna nodo más cercano a la base
+        for centro in cargar_centros():
+            nodo_cercano = self.grafo.nodo_cercano(centro[0],centro[1]) #se asigna nodo más cercano al centro
+            self.centros.append(CentroMedico(centro[0],centro[1],nodo_cercano))
+        #print("SE CARGAN LAS BASES Y LOS CENTROS EN LA CIUDAD\n")
+
+class Simmulacion:
+
+    def __init__(self):
+        self.activa =  True 
+        self.control = None
+
+        self.crear_entidades()
+
+        date = datetime(2021, 9, 26)
         newdate = date.replace(hour=0)
         
-        #seteamos variable de tiempo
+        # Seteamos variable de tiempo
         self.tiempo_actual = newdate
-        self.tiempo_maximo = newdate + timedelta(hours = tiempo_simulacion)
-        
-        #seteamos inputs de distribiciones y estrucutras de la simulación
-        self.tasa_llegada = tasa_llegda
-        #aqui encontrar una distribución para las llamadas
-        self.prox_llamada_llega = self.tiempo_actual + timedelta(minutes = int(fisk(4.7446,740.24,0)))
-        self.capacidad_cola = capacidad
+        self.tiempo_maximo = newdate + timedelta(hours = TIEMPO_SIMULACION)
+
+        #seteamos cola para llamadas
         self.cola = deque()
-        #timedelta(minutes = int(fisk(4,7446,740,24,0)))
         
-        # las variables para el cálculo de estadísticas se dejan en el constructor
-        self.cantidad_llamadas = 0 # son los autos que llegan
-        self.cantidad_llamadas_perdidas = 0
-        self.terminadas = 0
-        
-        # manejamos una lista con todos los tiempos de una atención completa que se generan
-        self.tiempos_atencion_completa = [[self.tiempo_actual.replace(year=3000), None]]
-        
-        
-    # usamos properties para trabajar con mayor comodidad el atributo del proximo auto que termina de ser atendido
-    @property
-    def proxima_atencion_termina(self):
-        # Esta la próxima persona que terminará de ser atendida con su tiempo asociado
-        x, y = self.tiempos_atencion_completa[0]
-        return x, y
-        
-    @property
-    def proximo_evento(self):
-        tiempos = [self.proximo_llamada_llega,
-                   self.proxima_atencion_termina[0]]
-        tiempo_prox_evento = min(tiempos)
+        # Seteamos inputs de distribiciones y estrucutras de la simulación
+        self.prox_evento_llega = self.tiempo_actual + timedelta(minutes = int(npr.exponential(1/TASA_LLEGADA)))
+        self.tiempos_ambulancias = [] # Lista de la forma [[tiempo, id_mbulancia, base_asignada]]
 
-        if tiempo_prox_evento >= self.tiempo_maximo:
-            return "fin"
-        eventos = ["llegada_llamada", "evento_completo"]
-        return eventos[tiempos.index(tiempo_prox_evento)]    
-    
-    
-    def llegar_llamada(self):
-        time.sleep(0.4)
-        self.tiempo_actual = self.prox_llamada_llega
-        self.prox_llamada_llega = self.tiempo_actual + timedelta(minutes = int(gammavariate(8.7317,90.558)/60))
-        llamada = Llamada(self.tiempo_actual)
-        print("\r\r\033[92m[INGRESO ESTACION]\033[0m ha ingresado una llamada id: {0} {1}".format(llamada,self.tiempo_actual))
+        #Seteamos datos que utilizaremos para llevar registro 
+        self.atenciones = 0 #se considera el evento entero
         
-        if len(self.cola) == self.capacidad_cola:
-            print("[COLA LLENA!!!] Se ha llenado la cola de espera para el sistema")
-            self.cantidad_llamadas += 1
-            self.cantidad_llamadas_perdidas += 1
-        
-        #si la ambulanca está libre ver que hacer aca
-        # elif self.estacion["E1"] == None:
-        #     #self.tiempo_sistema_vacio += (self.tiempo_actual - self.ultimo_tiempo_actual_vacio)
-        #     self.estacion["E1"] = llamada
-        #     self.estacion["E1"].estacion = "E1"
-        #     self.estacion["E1"].generar_tiempo_abandono_taller(self.tiempo_actual)
-        #     self.tiempos_abandono_taller.append((auto.tiempo_abandono_taller, llamada))
-        #     self.tiempos_abandono_taller.sort(key=lambda z: datetime.strftime(z[0], "%Y-%m-%d-%H-%M"))
-        #     print("\r\r\033[92m[INGRESO ESTACION]\033[0m ha ingresado un auto a E1 id: {} {}".format(
-        #         self.estacion["E1"]._id, self.tiempo_actual))
-        
-        # self.cantidad_llamadas += 1
+    @property
+    def proxima_accion(self):
+        print(f"Proxima Acción")
+        print(self.prox_evento_llega)
+        if len(self.tiempos_ambulancias) > 0 :
+            self.tiempos_ambulancias.sort(key = lambda x: x[0])
+            if self.tiempos_ambulancias[0][0] < self.prox_evento_llega:
+                min_ambulancias = self.tiempos_ambulancias.pop(0)
+                return ("Fin Atencion", min_ambulancias)
+        return ("Generar evento", None)
+
+
+    def generar_evento(self):
+        self.tiempo_actual = self.prox_evento_llega
+        self.prox_evento_llega = self.tiempo_actual + timedelta(minutes = int(npr.exponential(1/TASA_LLEGADA)))
+        evento = Evento(self.tiempo_actual)
+        print(f"\nSe genera el evento {evento.id} en la ubicación {(evento.x , evento.y)}\n")
+        # NO HABIA COLA
+        if  len(self.cola) == 0:
+            # Asigna la base más cercana al evento con ambulancias disponiblesS
+            tiempo_total, id_ambulancia, base_asignada = self.control.asignar_base(evento)
+            # Habían ambulancias disponibles
+            if tiempo_total != None:
+                print(f"Hora actual:{self.tiempo_actual}")
+                print(f"Hora término: {self.tiempo_actual + timedelta(minutes = int(tiempo_total))}\n")
+                self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
+            else:
+                print(f"Se agrega a la cola el evento {evento.id}\n")
+                self.cola.append(evento)
         else:
-            self.cola.append(llamada)
+            print(f"Se agrega a la cola el evento {evento.id}\n")
+            self.cola.append(evento)
+
             
-    def evento_completo(self):
-        time.sleep(0.4)
-        self.tiempo_actual, llamada_termina = self.proxima_atencion_termina
-        
-        if len(self.cola) > 0:
-            print("Se desocupa una ambulancia \n")#colocar id
-            print("Se termina la llada id {}".format(llamada_termina))
-            proxima_llamada = self.cola.popleft()
-            print(proxima_llamada)
-            proxima_llamada.ambulancia = llamada_termina.ambulancia
-            self.llamada_pasa_a_ser_atendida(proxima_llamada, llamada_termina.ambulancia)
-        else:
-            print("La amulancia termina de atender la llamada id: {}, está desocupada pero"
-                  "no hay llamadas en cola {}".format(llamada_termina._id, self.tiempo_actual))
-            self.ambulancia[llamada_termina.estacion] = None
-        self.tiempos_atencion_completa.pop(0)
-        self.terminadas += 1
-        
-    def llamada_pasa_a_ser_atendida(self, llamada, e):
-        time.sleep(0.4)
-        self.ambulancia[e] = llamada
-        self.ambulancia[e].generar_tiempo
-        
+    def fin_atencion(self, tiempo, id_ambulancia, base_asignada):
+        self.tiempo_actual = tiempo
+        base_asignada.ambulancias[id_ambulancia].llamadas_atendidas += 1 
+        base_asignada.terminar_atencion(id_ambulancia)
     
-    #motor de la simulacion
-    def run(self):
+    def actualizar_cola(self):
+        print(f"Se actualiza la cola")
+        evento = self.cola.popleft()
+        print(f"Nueva cola: {self.cola}")
+        # Asigna la base más cercana al evento con ambulancias disponibles
+        tiempo_total, id_ambulancia, base_asignada = self.control.asignar_base(evento)
+        if tiempo_total != None:
+            print(f"Hora actual:{self.tiempo_actual}")
+            print(f"Hora término: {self.tiempo_actual + timedelta(minutes = int(tiempo_total))}\n")
+            self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
+
+    def simular(self):
+        print("COMIENZA LA SIMULACIÓN\n")
+        tiempo_inicial = time.time()
         while self.tiempo_actual < self.tiempo_maximo:
-            evento = self.proximo_evento
-            if evento == "fin":
-                self.tiempo_actual = self.tiempo_maximo
-                break
-            elif evento == "llegada_llamada":
-                self.llegar_llamada()
-            elif evento == "evento_completo":
-                self.completar_evento()
-                
-                
-                
-cantidad_llamadas = 5000
-
-contador = 0
-llamadas = list()
-""" hora_llamadas = list() """
-date = datetime(2021, 12, 9)
-newdate = date.replace(hour=0)
-while contador != cantidad_llamadas:
-    value = float(gammavariate(8.7317,90.558)/60)
-    if value > 0 and value < 24:
-        contador += 1
-        """ minutes = value*60
-        minutes = int(minutes) """
-        """ hours, minutes = divmod(minutes, 60) """
-        """ hora_llamada = f"{hours}:{minutes}" """
-        llamadas.append(value)
-        """ hora_llamadas.append(hora_llamada) """
-
-    
-print(max(llamadas))
-""" print(hora_llamadas) """
-print(contador)
-        #llamadas.append(newdate + timedelta(minutes=int(gammavariate(8.7317,90.558,0,0))))
+            estado, parametros  = self.proxima_accion
+            if estado == "Fin Atencion":
+                tiempo, id_ambulancia, base_asignada = parametros[0], parametros[1], parametros[2]
+                self.fin_atencion(tiempo, id_ambulancia, base_asignada)
+                if self.cola:
+                    self.actualizar_cola()
+            elif estado == "Generar evento":
+                self.generar_evento()
         
-llamada_x_hora = [0 for i in range(24)]
-#print(llamada_x_hora)
-contador = 0
-for i in range(24):
-    for llamada in llamadas:
-        if i == int(llamada):
-            llamada_x_hora[i] += 1
-print(llamada_x_hora)
+        for base in self.control.bases:
+            contador = 0
+            for ambulancia in base.ambulancias.values():
+                contador += ambulancia.llamadas_atendidas
+                self.atenciones += ambulancia.llamadas_atendidas
+
+            print(f"La base {base.id} atendió {contador} llamadas en total")
+        print(f"\nLARGO COLA FINAL {len(self.cola)}")      
+        print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
+        print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
+        print("FIN SIMULACIÓN")
+        
+    def crear_entidades(self):
+        self.control = Control()
+        self.control.cargar_entidades()
+
+
+if __name__ == "__main__":
+    sim = Simmulacion()
+    sim.simular()
