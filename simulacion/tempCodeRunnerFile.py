@@ -1,1 +1,1 @@
-cola
+TIEMPO_SIMULACION

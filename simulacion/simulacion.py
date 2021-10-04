@@ -4,7 +4,8 @@ import time
 import copy
 from collections import deque
 from datetime import datetime, timedelta
-from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, TIEMPO_DERIVACION, MU_ATENCION, SIGMA_ATENCION, MAX_X, MAX_Y, MIN_X, MIN_Y
+from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, TIEMPO_DERIVACION, \
+ MU_ATENCION, SIGMA_ATENCION, MAX_X, MAX_Y, MIN_X, MIN_Y, PATH, PATH2
 from cargar_datos import cargar_bases, cargar_centros
 
 
@@ -110,14 +111,16 @@ class Control:
         self.bases = []
         self.centros = []
         self.grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
-
+        print(f"Cantidad de nodos:{len(self.grafo.nodos.values())}")
+        self.lista_tiempos_respuesta = []
+        self.base_evento = []
+        self.rutas = []
     def asignar_base(self, evento):
 
         # Obtenemos el nodo cercano al evento
         nodo_evento = self.grafo.nodo_cercano(evento.x, evento.y)
         # Corremos Dijsktra
         self.grafo.tiempo_minimo(nodo_evento.id)
-
                 
         # Seleccionamos la base a menor tiempo
         bases_disponibles  = [base for base in self.bases if base.ambulancias_disponibles]
@@ -127,8 +130,13 @@ class Control:
             # print("Entra a base disponible")
             bases_disponibles.sort(key=lambda x: x.nodo_cercano.tiempo)
             base_asignada = bases_disponibles[0]
-            tiempo = [base.nodo_cercano.tiempo for base in bases_disponibles]
             tiempo_base = copy.copy(base_asignada.nodo_cercano.tiempo)
+            self.lista_tiempos_respuesta.append(tiempo_base)
+            self.base_evento.append((evento.x, evento.y, base_asignada.x, base_asignada.y))
+            ruta = self.grafo.entregar_ruta(base_asignada.nodo_cercano.id, nodo_evento.id)
+            print(ruta)
+            self.rutas.append(ruta)
+
             # Seleccionamos el centro medico de menor tiempo
             centros = [centro for centro in self.centros]
             centros.sort(key=lambda x: x.nodo_cercano.tiempo)
@@ -179,6 +187,7 @@ class Simmulacion:
         # Seteamos inputs de distribiciones y estrucutras de la simulación
         self.prox_evento_llega = self.tiempo_actual + timedelta(minutes = int(npr.exponential(1/TASA_LLEGADA)))
         self.tiempos_ambulancias = [] # Lista de la forma [[tiempo, id_mbulancia, base_asignada]]
+        
 
         #Seteamos datos que utilizaremos para llevar registro 
         self.atenciones = 0 #se considera el evento entero
@@ -227,6 +236,7 @@ class Simmulacion:
         evento = self.cola.popleft()
         print(f"Nueva cola: {self.cola}")
         # Asigna la base más cercana al evento con ambulancias disponibles
+        evento.tiempo_espera = self.tiempo_actual - evento.tiempo_inicio 
         tiempo_total, id_ambulancia, base_asignada = self.control.asignar_base(evento)
         if tiempo_total != None:
             print(f"Hora actual:{self.tiempo_actual}")
@@ -257,10 +267,33 @@ class Simmulacion:
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
-        
+        # self.guardar_tiempo_promedio(PATH)
+        # self.guardar_tiempos_respuesta(PATH)
+        self.guardar_base_evento(PATH)
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
+    
+    def guardar_tiempos_respuesta(self, path):
+        with open(path,"w") as archivo:
+            for tiempo in self.control.lista_tiempos_respuesta:
+                archivo.write(f"{tiempo}\n")
+
+    def guardar_tiempo_promedio(self, path):
+        tiempo_promedio  = sum(self.control.lista_tiempos_respuesta)/len(self.control.lista_tiempos_respuesta)
+        with open(path,"a+") as archivo:
+            archivo.write(f"{tiempo_promedio}\n")
+    def guardar_base_evento(self, path):
+        with open(path, "w") as archivo:
+            for b in self.control.base_evento:
+                archivo.write(f"{b[0]};{b[1]};{b[2]};{b[3]}\n")
+        with open(PATH2, "w") as archivo:
+            for ruta in self.control.rutas:
+                for i in range(len(ruta)):
+                    if i != (len(ruta)-1):
+                        archivo.write(f"{ruta[i][0], ruta[i][1], ruta[i][2]};")
+                    else:
+                        archivo.write(f"{ruta[i][0], ruta[i][1], ruta[i][2]}\n")
 
 
 if __name__ == "__main__":
