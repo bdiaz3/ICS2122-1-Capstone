@@ -1,4 +1,4 @@
-TIEMPO_SIMULACION = 24
+TIEMPO_SIMULACION = 24*28
 TASA_LLEGADA = 1/23
 TIEMPO_DESPACHO = 0.275455
 TIEMPO_DERIVACION = 0.13123
@@ -10,5 +10,5 @@ MAX_Y = -43.3526225
 MIN_Y = 121.858924
 BASES_MODELO_1 = [1,1,0,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,0,0]
 BASES_MODELO = [0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,0,0]
-PATH = "Datos Simulacion/base_evento.csv"
-PATH2 = "Datos Simulacion/rutas_base_evento.csv"
+PATH = "Datos Simulacion/tiempo_promedio.csv"
+PATH2 = "Datos Simulacion/tiempos_respuesta.csv"
