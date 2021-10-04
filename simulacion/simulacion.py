@@ -268,8 +268,9 @@ class Simmulacion:
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
         # self.guardar_tiempo_promedio(PATH)
-        # self.guardar_tiempos_respuesta(PATH)
-        self.guardar_base_evento(PATH)
+        # self.guardar_tiempos_respuesta(PATH2)
+        # self.guardar_base_evento(PATH)
+
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
