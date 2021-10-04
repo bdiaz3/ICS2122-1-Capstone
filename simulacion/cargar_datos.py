@@ -7,7 +7,7 @@ def cargar_bases():
         lineas = bases.readlines()
         for l in range(len(lineas)-1):
             if l != 0:
-                if bases_utilizadas[l] == 1:
+                if bases_utilizadas[l-1] == 1:
                     linea = lineas[l].strip().split(";")
                     lista_bases.append((float(linea[0]),float(linea[1])))
     return lista_bases

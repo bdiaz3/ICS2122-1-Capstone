@@ -19,7 +19,6 @@ class  Nodo:
 class Grafo:
     def __init__(self, path_nodos, path_arcos):
         self.nodos = {}
-        self.bases = {}
         
         self.cargar_nodos(path_nodos)
         self.cargar_arcos(path_arcos)
@@ -31,7 +30,7 @@ class Grafo:
             for n in nodos:
                 n = n.strip().split(";")
                 self.agregar_nodo(int(n[0]), float(n[1]), float(n[2]))
-            
+
     def cargar_arcos(self, path):
         with open(path) as arcos:
             arcos = arcos.readlines()
@@ -67,7 +66,7 @@ class Grafo:
             inicio.tiempo = 0
             while len(por_visitar)> 0:
                 actual = por_visitar.popleft()
-                for id_vecino,tiempo in actual.vecinos.items():
+                for id_vecino, tiempo in actual.vecinos.items():
                     vecino = self.nodos[id_vecino]
                     if vecino.color == "White" or vecino.color == "Gray":
                         if vecino.tiempo > actual.tiempo + tiempo:
@@ -77,7 +76,6 @@ class Grafo:
                             vecino.color = "Gray"
                             por_visitar.append(vecino)
                 actual.color = "Black"
-
 
     def reiniciar_caminos(self):
         for nodo in self.nodos.values():
@@ -94,6 +92,29 @@ class Grafo:
                 distancia = nueva_dist
                 cercano = nodo
         return cercano
+
+    def entregar_ruta(self, origen_id, destino_id):
+        if origen_id == destino_id:
+            return []
+        origen = self.nodos.get(origen_id)
+        destino = self.nodos.get(destino_id)
+        if origen is None or destino is None:
+            return []
+        por_visitar = [[origen]]
+        visitados = list()
+        while len(por_visitar):
+            lista_actual = por_visitar.pop(0)
+            nodo_actual = lista_actual[-1]
+            if nodo_actual not in visitados:
+                vecinos = [self.nodos.get(nodo_actual.elegido)]
+                for vecino in vecinos:
+                    por_visitar.append(list(lista_actual)+[vecino])
+                    if vecino == destino:
+                        lista_con_nombres = [(nodo.x, nodo.y, nodo.tiempo-self.nodos[nodo.elegido].tiempo) 
+                                                 if nodo.elegido != None else (nodo.x, nodo.y , 0) for nodo in por_visitar[-1]]
+                        return lista_con_nombres
+                visitados.append(nodo_actual)
+        return []
 
 if __name__ == "__main__":
     grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
