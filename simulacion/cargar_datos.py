@@ -5,7 +5,7 @@ def cargar_bases():
         lista_bases = []
         bases_utilizadas = BASES_MODELO
         lineas = bases.readlines()
-        for l in range(len(lineas)-1):
+        for l in range(len(lineas)):
             if l != 0:
                 if bases_utilizadas[l-1] == 1:
                     linea = lineas[l].strip().split(";")

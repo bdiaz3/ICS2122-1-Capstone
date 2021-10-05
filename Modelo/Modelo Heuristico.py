@@ -3,7 +3,7 @@ from gurobipy import GRB
 import numpy as np
 import copy
 
-NITER = 500
+NITER = 1000
 
 m = 26 # Numero de bases
 n = 22117 # LLamadas
@@ -59,7 +59,7 @@ for k in range(1, NITER):
 # Se crea un vecino, agregando o quitando ambulancias de un centro aleatorio
 
     yvecino = copy.deepcopy(y) 
-    j0 = np.random.randint(0,m-1) #ID del vecino
+    j0 = np.random.randint(0, m-1) #ID del vecino
     yvecino[j0] = 1-yvecino[j0] # Nuevo valor 
     
     # Cambiamos el valor en la reestrición
