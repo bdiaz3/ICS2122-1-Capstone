@@ -19,29 +19,30 @@ class  Nodo:
 class Grafo:
     def __init__(self, path_nodos, path_arcos):
         self.nodos = {}
-        
+        self.bases = {}
         self.cargar_nodos(path_nodos)
         self.cargar_arcos(path_arcos)
         
     def cargar_nodos(self, path):
-        with open(path) as nodos:
+        with open(path, "r", encoding="utf-8") as nodos:
             nodos = nodos.readlines()
             nodos.pop(0)
             for n in nodos:
                 n = n.strip().split(";")
                 self.agregar_nodo(int(n[0]), float(n[1]), float(n[2]))
-
+            
     def cargar_arcos(self, path):
-        with open(path) as arcos:
+        with open(path, "r", encoding="utf-8") as arcos:
             arcos = arcos.readlines()
             arcos.pop(0)
             for a in arcos:
-                a = a.strip().split(";")
-                velocidad = sum(float(x) for x in a[2:])/len(a[2:])
+                a = a.strip().split(";")   
                 distancia = self.distancia(float(a[0]),float(a[1]))
+                velocidad = sum(float(x) for x in a[2:])/len(a[2:])      
+                tiempo = distancia/velocidad
                 if distancia != 0:
                     # Multiplicamos por 60 para pasarlo a minutos
-                    self.agregar_arco(float(a[0]), float(a[1]), 60*distancia/velocidad)
+                    self.agregar_arco(int(a[0]), int(a[1]), 60*tiempo)
             
     def agregar_nodo(self, id, x, y):
         self.nodos[id] = Nodo(id,x,y)
@@ -66,7 +67,7 @@ class Grafo:
             inicio.tiempo = 0
             while len(por_visitar)> 0:
                 actual = por_visitar.popleft()
-                for id_vecino, tiempo in actual.vecinos.items():
+                for id_vecino,tiempo in actual.vecinos.items():
                     vecino = self.nodos[id_vecino]
                     if vecino.color == "White" or vecino.color == "Gray":
                         if vecino.tiempo > actual.tiempo + tiempo:
@@ -93,7 +94,7 @@ class Grafo:
                 distancia = nueva_dist
                 cercano = nodo
         return cercano
-
+    
     def entregar_ruta(self, origen_id, destino_id):
         if origen_id == destino_id:
             return []
@@ -116,9 +117,6 @@ class Grafo:
                         return lista_con_nombres
                 visitados.append(nodo_actual)
         return []
-
-if __name__ == "__main__":
-    grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
     
 
  
