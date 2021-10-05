@@ -9,7 +9,7 @@ from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, TIEMPO_
 from cargar_datos import cargar_bases, cargar_centros
 
 # Aca se puede cambiar la seed para probar distintos escenarios
-npr.seed(5)
+npr.seed(15)
 
 class Ambulancia:
     # Generador de ID
@@ -118,8 +118,8 @@ class Control:
     def asignar_base(self, evento):
 
         # Obtenemos el nodo cercano al evento
+        
         nodo_evento = self.grafo.nodo_cercano(evento.x, evento.y)
-
         # Corremos Dijsktra para el evento
         self.grafo.tiempo_minimo(nodo_evento.id)
                 
@@ -134,7 +134,10 @@ class Control:
             self.base_evento.append((evento.x, evento.y, base_asignada.x, base_asignada.y))
             ruta = self.grafo.entregar_ruta(base_asignada.nodo_cercano.id, nodo_evento.id)
             self.rutas.append(ruta)
-
+            if evento.id == 4:
+                print(nodo_evento.x, nodo_evento.y)
+                print(base_asignada.nodo_cercano.x, base_asignada.nodo_cercano.y)
+                print(ruta)
             # Seleccionamos el centro medico de menor tiempo
             centros = [centro for centro in self.centros]
             centros.sort(key=lambda x: x.nodo_cercano.tiempo)
@@ -260,12 +263,13 @@ class Simmulacion:
             print(f"La base {base.id} atendió {contador} llamadas en total")
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
+        print(f"TIEMPO DE RESPUESTA PROMEDIO:{sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
-        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio.csv")
-        # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_nuevo_2.csv")
+        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_nuevo.csv")
+        # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_viejo.csv")
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
-
+        
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
@@ -276,7 +280,7 @@ class Simmulacion:
                 archivo.write(f"{tiempo}\n")
 
     def guardar_tiempo_promedio(self, path):
-        tiempo_promedio  = sum(self.control.lista_tiempos_respuesta)/len(self.control.lista_tiempos_respuesta)
+        tiempo_promedio  = sum(self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)
         with open(path,"a+") as archivo:
             archivo.write(f"{tiempo_promedio}\n")
 
@@ -284,7 +288,7 @@ class Simmulacion:
         with open(path, "w") as archivo:
             for b in self.control.base_evento:
                 archivo.write(f"{b[0]};{b[1]};{b[2]};{b[3]}\n")
-        with open("rutas_base_evento.csv", "w") as archivo:
+        with open("Datos Simulacion/rutas_base_evento.csv", "w") as archivo:
             for ruta in self.control.rutas:
                 for i in range(len(ruta)):
                     if i != (len(ruta)-1):

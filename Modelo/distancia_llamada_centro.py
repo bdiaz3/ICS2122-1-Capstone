@@ -12,13 +12,13 @@ events = []
 bases = []
 grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
 
-with open("Datos/eventos_excel.csv", 'r') as file:
+with open("Datos/eventos_excel.csv", 'r', encoding='utf8') as file:
     next(file)
     for line in file:
         linea = line.strip().split(";")
         events.append(linea)
         
-with open("Datos/bases.csv", 'r') as file1:
+with open("Datos/bases.csv", 'r', encoding='utf8') as file1:
     next(file1)
     for line in file1:
         linea = line.strip().split(";")

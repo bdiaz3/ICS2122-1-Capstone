@@ -20,11 +20,10 @@ alpha = 0.99
 
 #COSTOS
 c = [] 
-with open("Datos/tabla_tiempos.csv","r") as distancia:
+with open("Datos/tabla_tiempos.csv","r", encoding="UTF-8") as distancia:
     dist = distancia.readlines()
     for linea in dist:
         c.append(linea.strip().split(",")[1:])
-
 
 model = gp.Model('Localización de Ambulancias')
 model.setParam('OutputFlag', False) # turns off solver chatter

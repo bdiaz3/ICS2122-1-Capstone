@@ -59,7 +59,7 @@ with open('Datos Simulacion/base_evento.csv') as csv_file:
             BASES_ASIGNADAS_Y.append(float(row[3].replace(',','.')))
             line_count += 1
 
-SOLUCION_BASE = [0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,0,0] #Soluciones aquí
+SOLUCION_BASE = [1,1,0,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,0,0] #Soluciones aquí
 COORDENADA_X_BASES_SOLUCION = []
 COORDENADA_Y_BASES_SOLUCION = []
 for i in range(len(COORDENADA_X_BASES)):
@@ -70,7 +70,7 @@ for i in range(len(COORDENADA_X_BASES)):
 if __name__ == "__main__":
     plt.scatter(COORDENADA_X_BASES_SOLUCION, COORDENADA_Y_BASES_SOLUCION, c = 'red', s=15)
     plt.scatter(COORDENADA_X_EVENTOS, COORDENADA_Y_EVENTOS, c = 'green', s=10)
-    plt.scatter(COORDENADA_X_NODOS, COORDENADA_Y_NODOS, c = 'BLUE', s=7)
+    plt.scatter(COORDENADA_X_NODOS, COORDENADA_Y_NODOS, c = 'BLUE', s=1)
     plt.legend(['Bases','Eventos']) #Leyenda grafico: para eventos usar ['Nodos','Eventos','Centros', 'Bases Desocupadas', 'Bases Solución']
 
         
@@ -88,6 +88,7 @@ if __name__ == "__main__":
                 c = "red"
             plt.plot([origen[0], destino[0]],[origen[1],destino[1]], color=c)
             l += 1
+
     with open('Datos/arcos_coordenados.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
