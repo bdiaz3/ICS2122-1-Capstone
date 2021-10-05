@@ -15,13 +15,13 @@ grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
 with open("Datos/eventos_excel.csv", 'r') as file:
     next(file)
     for line in file:
-        linea = line.split(";")
+        linea = line.strip().split(";")
         events.append(linea)
         
 with open("Datos/bases.csv", 'r') as file1:
     next(file1)
     for line in file1:
-        linea = line.split(";")
+        linea = line.strip().split(";")
         bases.append(linea)
         
 def dis(x1, x2, y1, y2):
@@ -38,16 +38,14 @@ def dis(x1, x2, y1, y2):
 #         list_i.append(nodo_base.tiempo)
 #     data.append(list_i)
 #     grafo.reiniciar_caminos()
-contador = 0
-for j in bases:
-    nodo_base = grafo.nodo_cercano(float(j[0]), float(j[1]))
+
+for base in bases:
+    nodo_base = grafo.nodo_cercano(float(base[0]), float(base[1]))
     grafo.tiempo_minimo(nodo_base.id)
     list_j = []
     for i in events:
         nodo_evento = grafo.nodo_cercano(float(i[0]),float(i[1]))
         list_j.append(nodo_evento.tiempo)
-    #contador += 1
-    #print(contador)
     data_2.append(list_j)
     grafo.reiniciar_caminos()
     
