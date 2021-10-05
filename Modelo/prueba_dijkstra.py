@@ -121,10 +121,7 @@ class Grafo:
 
 if __name__ == "__main__":
     grafo = Grafo("Modelo/nodos.csv", "Modelo/arcos.csv")
-    nodo  = 3
+    nodo  = 5
     grafo.tiempo_minimo(float(nodo))
     for i in range(5):
         print(f"Desde el nodo {nodo} hasta el nodo {i+1}: {grafo.nodos[float(i+1)].tiempo}")
-    print(grafo.nodo_cercano(0, 0))
-    print(grafo.nodo_cercano(5, 4))
-    print(grafo.nodo_cercano(13.42))
