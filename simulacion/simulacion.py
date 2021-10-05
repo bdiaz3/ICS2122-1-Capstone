@@ -114,11 +114,13 @@ class Control:
         self.grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
         self.base_evento = []
         self.rutas = []
+        
     def asignar_base(self, evento):
 
         # Obtenemos el nodo cercano al evento
         nodo_evento = self.grafo.nodo_cercano(evento.x, evento.y)
-        # Corremos Dijsktra
+
+        # Corremos Dijsktra para el evento
         self.grafo.tiempo_minimo(nodo_evento.id)
                 
         # Seleccionamos la base a menor tiempo
@@ -126,7 +128,6 @@ class Control:
 
         # Si es que hay ambulancias disponibles
         if bases_disponibles:
-            # print("Entra a base disponible")
             bases_disponibles.sort(key=lambda x: x.nodo_cercano.tiempo)
             base_asignada = bases_disponibles[0]
             tiempo_base = copy.copy(base_asignada.nodo_cercano.tiempo)
@@ -192,7 +193,6 @@ class Simmulacion:
     @property
     def proxima_accion(self):
         print(f"Proxima Acción")
-        print(self.prox_evento_llega)
         if len(self.tiempos_ambulancias) > 0 :
             self.tiempos_ambulancias.sort(key = lambda x: x[0])
             if self.tiempos_ambulancias[0][0] < self.prox_evento_llega:
@@ -234,7 +234,7 @@ class Simmulacion:
         evento.tiempo_espera = self.tiempo_actual - evento.tiempo_inicio 
         tiempo_total, id_ambulancia, base_asignada, tiempo_base = self.control.asignar_base(evento)
         if tiempo_total != None:
-            tiempo_respuesta = tiempo_base + (self.tiempo_actual - evento.tiempo_inicio)/timedelta(minutes=1)
+            tiempo_respuesta = tiempo_base + (evento.tiempo_espera)/timedelta(minutes=1)
             self.lista_tiempos_respuesta.append(tiempo_respuesta)
             self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
 

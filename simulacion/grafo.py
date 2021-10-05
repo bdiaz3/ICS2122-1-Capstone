@@ -77,6 +77,7 @@ class Grafo:
                             por_visitar.append(vecino)
                 actual.color = "Black"
 
+
     def reiniciar_caminos(self):
         for nodo in self.nodos.values():
             nodo.color = "White"

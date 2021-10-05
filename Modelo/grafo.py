@@ -38,11 +38,20 @@ class Grafo:
             arcos.pop(0)
             for a in arcos:
                 a = a.strip().split(";")
-                velocidad = sum(float(x) for x in a[2:])/len(a[2:])
+                #velocidad = 3.6*sum(float(x) for x in a[2:])/len(a[2:])
+                
                 distancia = self.distancia(float(a[0]),float(a[1]))
+                velocidad = sum(float(x) for x in a[2:])/len(a[2:])
+                tiempo = distancia/velocidad
+
+                # if 60*tiempo > 5:
+                    # print(f"{velocidad} km/h")
+                    # print(f"{distancia} km")
+                    # print(f"{60*tiempo} min\n")
+
                 if distancia != 0:
                     # Multiplicamos por 60 para pasarlo a minutos
-                    self.agregar_arco(float(a[0]), float(a[1]), 60*distancia/velocidad)
+                    self.agregar_arco(float(a[0]), float(a[1]), 60*tiempo)
             
     def agregar_nodo(self, id, x, y):
         self.nodos[id] = Nodo(id,x,y)
