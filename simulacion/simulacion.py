@@ -5,11 +5,11 @@ import copy
 from collections import deque
 from datetime import datetime, timedelta
 from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, TIEMPO_DERIVACION, \
- MU_ATENCION, SIGMA_ATENCION, MAX_X, MAX_Y, MIN_X, MIN_Y
+ MU_ATENCION, SIGMA_ATENCION, MAX_X, MAX_Y, MIN_X, MIN_Y, AMBULANCIAS_X_BASE
 from cargar_datos import cargar_bases, cargar_centros
 
 # Aca se puede cambiar la seed para probar distintos escenarios
-npr.seed(15)
+npr.seed(19)
 
 class Ambulancia:
     # Generador de ID
@@ -45,8 +45,9 @@ class Base:
         self._ambulancias_utilizadas = 0
         
         # Se crea 1 ambulancia por base
-        ambulancia = Ambulancia()
-        self.ambulancias[ambulancia.id] = ambulancia
+        for i in range(AMBULANCIAS_X_BASE):
+            ambulancia = Ambulancia()
+            self.ambulancias[ambulancia.id] = ambulancia
 
     @property
     def ambulancias_utilizadas(self):
@@ -266,8 +267,8 @@ class Simmulacion:
         print(f"TIEMPO DE RESPUESTA PROMEDIO:{sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
-        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_nuevo.csv")
-        # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_viejo.csv")
+        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv")
+        self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_final.csv")
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
         
     def crear_entidades(self):
@@ -288,6 +289,7 @@ class Simmulacion:
         with open(path, "w") as archivo:
             for b in self.control.base_evento:
                 archivo.write(f"{b[0]};{b[1]};{b[2]};{b[3]}\n")
+                
         with open("Datos Simulacion/rutas_base_evento.csv", "w") as archivo:
             for ruta in self.control.rutas:
                 for i in range(len(ruta)):
@@ -298,5 +300,13 @@ class Simmulacion:
 
 
 if __name__ == "__main__":
-    sim = Simmulacion()
-    sim.simular()
+    inicio = 15
+    fin = 15
+    n = inicio
+    while n <= fin:
+        npr.seed(n)
+        sim = Simmulacion()
+        sim.simular()
+        print(f"Fin seed {n}")
+        time.sleep(1)
+        n += 1
