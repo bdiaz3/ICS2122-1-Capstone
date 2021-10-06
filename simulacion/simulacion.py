@@ -98,7 +98,7 @@ class Evento:
         self.tiempo_espera = 0
         self.tiempo_despacho = npr.exponential(TIEMPO_DESPACHO) # Desde que ocurre la llamada hasta que se encuentra la ambulancia
         # self.tiempo_derivacion = npr.exponential(TIEMPO_DERIVACION) # Tiempo de traslado al centro de salud 
-        self.tiempo_atencion = npr.lognormal(MU_ATENCION, SIGMA_ATENCION) # AtencLlega la ambulancia y se atiende 
+        self.tiempo_atencion = npr.lognormal(MU_ATENCION, SIGMA_ATENCION) # Atencion Llega la ambulancia y se atiende 
        
     def __repr__(self):
         return str(self.id)
@@ -135,8 +135,6 @@ class Control:
             bases_disponibles.sort(key=lambda x: length[x.nodo_cercano.id])
             base_asignada = bases_disponibles[0]
             tiempo_base = copy.copy(length[base_asignada.nodo_cercano.id])
-            print(tiempo_base)
-            time.sleep(3)
             self.base_evento.append((evento.x, evento.y, base_asignada.x, base_asignada.y))
             # ruta = self.grafo.entregar_ruta(base_asignada.nodo_cercano.id, nodo_evento.id)
             # self.rutas.append(ruta)
@@ -273,8 +271,8 @@ class Simmulacion:
         print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
-        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv", "Datos Simulacion/promedio_sin_cola_viejo.csv")
-        # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_uniforme.csv", "Datos Simulacion/t_respuesta_sin_cola_uniforme.csv")
+        self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv", "Datos Simulacion/promedio_sin_cola_viejo.csv")
+        # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_viejo.csv", "Datos Simulacion/t_respuesta_sin_cola_viejo.csv")
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
         
     def crear_entidades(self):
@@ -313,13 +311,16 @@ class Simmulacion:
 
 
 if __name__ == "__main__":
-    inicio = 28
-    fin = 28
+    inicio = 1
+    fin = 30
     n = inicio
     while n <= fin:
         npr.seed(n)
         sim = Simmulacion()
         sim.simular()
         print(f"Fin seed {n}\n")
+        Evento.ID = 0
+        Base.ID = 0
+        Ambulancia.ID = 0
         time.sleep(1)
         n += 1
