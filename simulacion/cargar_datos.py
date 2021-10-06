@@ -1,9 +1,9 @@
-from parametros import BASES_UTLIMA_SOL, TODAS, BASES_MODELO_VIEJO, BASES_MODELO_UNIFORME
+from parametros import BASES_UTLIMA_SOL, TODAS, BASES_MODELO_VIEJO, BASES_MODELO_UNIFORME, NUEVO
 
 def cargar_bases():
     with open("Datos/bases.csv") as bases:
         lista_bases = []
-        bases_utilizadas = BASES_MODELO_VIEJO
+        bases_utilizadas = NUEVO
         lineas = bases.readlines()
         for l in range(len(lineas)):
             if l != 0:

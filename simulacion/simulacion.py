@@ -7,9 +7,10 @@ from datetime import datetime, timedelta
 from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, TIEMPO_DERIVACION, \
  MU_ATENCION, SIGMA_ATENCION, MAX_X, MAX_Y, MIN_X, MIN_Y, AMBULANCIAS_X_BASE
 from cargar_datos import cargar_bases, cargar_centros
+from grafo_networkx import cargar_grafo
+import networkx as nx
 
 # Aca se puede cambiar la seed para probar distintos escenarios
-npr.seed(19)
 
 class Ambulancia:
     # Generador de ID
@@ -113,6 +114,7 @@ class Control:
         self.bases = []
         self.centros = []
         self.grafo = Grafo("Datos/nodos.csv", "Datos/arcos.csv")
+        self.grafo2 = cargar_grafo("Datos/nodos.csv","Datos/arcos.csv")
         self.base_evento = []
         self.rutas = []
         
@@ -122,32 +124,36 @@ class Control:
         
         nodo_evento = self.grafo.nodo_cercano(evento.x, evento.y)
         # Corremos Dijsktra para el evento
-        self.grafo.tiempo_minimo(nodo_evento.id)
+        # self.grafo.tiempo_minimo(nodo_evento.id)
+        length, _ = nx.single_source_dijkstra(self.grafo2, nodo_evento.id)
                 
         # Seleccionamos la base a menor tiempo
         bases_disponibles  = [base for base in self.bases if base.ambulancias_disponibles]
 
         # Si es que hay ambulancias disponibles
         if bases_disponibles:
-            bases_disponibles.sort(key=lambda x: x.nodo_cercano.tiempo)
+            bases_disponibles.sort(key=lambda x: length[x.nodo_cercano.id])
             base_asignada = bases_disponibles[0]
-            tiempo_base = copy.copy(base_asignada.nodo_cercano.tiempo)
+            tiempo_base = copy.copy(length[base_asignada.nodo_cercano.id])
+            print(tiempo_base)
+            time.sleep(3)
             self.base_evento.append((evento.x, evento.y, base_asignada.x, base_asignada.y))
-            ruta = self.grafo.entregar_ruta(base_asignada.nodo_cercano.id, nodo_evento.id)
-            self.rutas.append(ruta)
+            # ruta = self.grafo.entregar_ruta(base_asignada.nodo_cercano.id, nodo_evento.id)
+            # self.rutas.append(ruta)
             # Seleccionamos el centro medico de menor tiempo
             centros = [centro for centro in self.centros]
-            centros.sort(key=lambda x: x.nodo_cercano.tiempo)
+            centros.sort(key=lambda x: length[x.nodo_cercano.id])
             centro_asignado = centros[0]
-            tiempo_centro = copy.copy(centro_asignado.nodo_cercano.tiempo)
+            tiempo_centro = copy.copy(length[centro_asignado.nodo_cercano.id])
 
             id_ambulancia = base_asignada.asignar_ambulancia(evento)
-            self.grafo.reiniciar_caminos()
+            # self.grafo.reiniciar_caminos()
 
             # Corresmos Dijsktra para ir del Centro Medico a la Base
-            self.grafo.tiempo_minimo(centro_asignado.nodo_cercano.id)
-            tiempo_retorno = base_asignada.nodo_cercano.tiempo
-            self.grafo.reiniciar_caminos()
+            # self.grafo.tiempo_minimo(centro_asignado.nodo_cercano.id)
+            length, _ = nx.single_source_dijkstra(self.grafo2, centro_asignado.nodo_cercano.id)
+            tiempo_retorno = length[base_asignada.nodo_cercano.id]
+            # self.grafo.reiniciar_caminos()
             return (tiempo_base + evento.tiempo_despacho + 
                      + evento.tiempo_atencion + tiempo_centro + tiempo_retorno, id_ambulancia, base_asignada, tiempo_base)
 
@@ -307,8 +313,8 @@ class Simmulacion:
 
 
 if __name__ == "__main__":
-    inicio = 1
-    fin = 1
+    inicio = 28
+    fin = 28
     n = inicio
     while n <= fin:
         npr.seed(n)
