@@ -1,7 +1,0 @@
-1.  t_respuesta_modelo_nuevo.csv se corrio la simulación con el modelo nuevo durante 1 mes con seed(15)
-2.  t_respuesta_modelo_viejo.csv se corrio la simulación con el modelo viejo durante 1 mes con seed(15)
-3.  un_mes_modelo_nuevo.PNG entrega el resumen de la simulacion con el modelo nuevo
-4.  un_mes_modelo_viejo.PNG entrega el rseumen de la simualcion con el modelo viejo
-5.  t_respuesta_modelo_viejo_2.csv se corrio la simulación con el modelo viejo durante 2 meses con seed(15)
-6.  t_respuesta_modelo_nuevo_2.csv se corrio la simulación con el modelo nuevo durante 2 meses con seed(15)
-7.  tiempo_promedio_nuevo.csv son los tiempos de respuesta corriendo la simulación (modelo nuevo) 1 semana, 2 semanas, 3 semanas ..... hasta 8 semanas

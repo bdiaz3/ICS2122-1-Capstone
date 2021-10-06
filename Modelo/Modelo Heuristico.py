@@ -95,7 +95,7 @@ for k in range(1, NITER):
 
         
     print("%8.0f %8.4f %8.4f %10.4f" % (k, valor_old, valor_vecino, Tk))
-
+    print(y)
     # Se actualiza la temperatura
     Tk = alpha*Tk
     
