@@ -135,10 +135,6 @@ class Control:
             self.base_evento.append((evento.x, evento.y, base_asignada.x, base_asignada.y))
             ruta = self.grafo.entregar_ruta(base_asignada.nodo_cercano.id, nodo_evento.id)
             self.rutas.append(ruta)
-            if evento.id == 4:
-                print(nodo_evento.x, nodo_evento.y)
-                print(base_asignada.nodo_cercano.x, base_asignada.nodo_cercano.y)
-                print(ruta)
             # Seleccionamos el centro medico de menor tiempo
             centros = [centro for centro in self.centros]
             centros.sort(key=lambda x: x.nodo_cercano.tiempo)
@@ -190,6 +186,7 @@ class Simmulacion:
         self.prox_evento_llega = self.tiempo_actual + timedelta(minutes = int(npr.exponential(1/TASA_LLEGADA)))
         self.tiempos_ambulancias = [] # Lista de la forma [[tiempo, id_mbulancia, base_asignada]]
         self.lista_tiempos_respuesta = []
+        self.tiempos_sin_cola = []
 
         #Seteamos datos que utilizaremos para llevar registro 
         self.atenciones = 0 #se considera el evento entero
@@ -217,6 +214,7 @@ class Simmulacion:
             # Habían ambulancias disponibles
             if tiempo_total != None:
                 self.lista_tiempos_respuesta.append(tiempo_base)
+                self.tiempos_sin_cola.append(tiempo_base)
                 self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
             else:
                 print(f"Se agrega a la cola el evento {evento.id}\n")
@@ -240,6 +238,7 @@ class Simmulacion:
         if tiempo_total != None:
             tiempo_respuesta = tiempo_base + (evento.tiempo_espera)/timedelta(minutes=1)
             self.lista_tiempos_respuesta.append(tiempo_respuesta)
+            self.tiempos_sin_cola.append(tiempo_base)
             self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
 
     def simular(self):
@@ -265,25 +264,33 @@ class Simmulacion:
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
         print(f"TIEMPO DE RESPUESTA PROMEDIO:{sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
+        print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
-        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv")
-        self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_final.csv")
+        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv", "Datos Simulacion/promedio_sin_cola_viejo.csv")
+        # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_uniforme.csv", "Datos Simulacion/t_respuesta_sin_cola_uniforme.csv")
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
         
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
     
-    def guardar_tiempos_respuesta(self, path):
-        with open(path,"w") as archivo:
+    def guardar_tiempos_respuesta(self, path1, path2):
+        with open(path1,"w") as archivo:
             for tiempo in self.lista_tiempos_respuesta:
                 archivo.write(f"{tiempo}\n")
+        with open(path2,"w") as archivo:
+            for tiempo in self.tiempos_sin_cola:
+                archivo.write(f"{tiempo}\n")
 
-    def guardar_tiempo_promedio(self, path):
+    def guardar_tiempo_promedio(self, path1, path2):
         tiempo_promedio  = sum(self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)
-        with open(path,"a+") as archivo:
+        with open(path1,"a+") as archivo:
             archivo.write(f"{tiempo_promedio}\n")
+            
+        promedio_sin_cola  = sum(self.tiempos_sin_cola)/len(self.tiempos_sin_cola)
+        with open(path2,"a+") as archivo:
+            archivo.write(f"{promedio_sin_cola}\n")
 
     def guardar_base_evento(self, path):
         with open(path, "w") as archivo:
@@ -300,13 +307,13 @@ class Simmulacion:
 
 
 if __name__ == "__main__":
-    inicio = 15
-    fin = 15
+    inicio = 1
+    fin = 1
     n = inicio
     while n <= fin:
         npr.seed(n)
         sim = Simmulacion()
         sim.simular()
-        print(f"Fin seed {n}")
+        print(f"Fin seed {n}\n")
         time.sleep(1)
         n += 1

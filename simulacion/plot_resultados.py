@@ -59,7 +59,7 @@ with open('Datos Simulacion/base_evento.csv') as csv_file:
             BASES_ASIGNADAS_Y.append(float(row[3].replace(',','.')))
             line_count += 1
 
-SOLUCION_BASE = [1,1,0,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,0,0] #Soluciones aquí
+SOLUCION_BASE = [1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1,0,1,1,1,1,0,1,0,0] #Soluciones aquí
 COORDENADA_X_BASES_SOLUCION = []
 COORDENADA_Y_BASES_SOLUCION = []
 for i in range(len(COORDENADA_X_BASES)):
