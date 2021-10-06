@@ -20,7 +20,7 @@ alpha = 0.99
 
 #COSTOS
 c = [] 
-with open("Datos/tabla_tiempos.csv","r", encoding="UTF-8") as distancia:
+with open("Datos/tabla_tiempos_nueva.csv","r", encoding="UTF-8") as distancia:
     dist = distancia.readlines()
     for linea in dist:
         c.append(linea.strip().split(",")[1:])
@@ -102,7 +102,7 @@ for k in range(1, NITER):
 print('\n mejor valor encontrado: ',best)
 
 
-with open("Datos/output.csv","w") as output:
+with open("Datos/output_nuevo.csv","w") as output:
     for i in range(len(y)):
         if i != len(y)-1:
             output.write(str(y[i]))
