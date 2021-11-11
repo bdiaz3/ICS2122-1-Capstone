@@ -4,11 +4,11 @@ import time
 import copy
 from collections import deque
 from datetime import datetime, timedelta
-from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, TIEMPO_DERIVACION, \
- MU_ATENCION, SIGMA_ATENCION, MAX_X, MAX_Y, MIN_X, MIN_Y, AMBULANCIAS_X_BASE
+from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, MU_ATENCION, SIGMA_ATENCION, AMBULANCIAS_X_BASE
 from cargar_datos import cargar_bases, cargar_centros
 from grafo_networkx import cargar_grafo
 import networkx as nx
+from grillas import Mapa
 
 # Aca se puede cambiar la seed para probar distintos escenarios
 
@@ -90,14 +90,13 @@ class Evento:
         self.ID += 1
         return self.ID
 
-    def __init__(self, tiempo_inicio):
+    def __init__(self, tiempo_inicio, grilla):
         self.id = self.incr()
         self.tiempo_inicio = tiempo_inicio
-        self.x = npr.uniform(MIN_X, MAX_X)
-        self.y = npr.uniform(MIN_Y, MAX_Y)
+        self.x = npr.uniform(grilla.x_min, grilla.x_max)
+        self.y = npr.uniform(grilla.y_min, grilla.y_max)
         self.tiempo_espera = 0
         self.tiempo_despacho = npr.exponential(TIEMPO_DESPACHO) # Desde que ocurre la llamada hasta que se encuentra la ambulancia
-        # self.tiempo_derivacion = npr.exponential(TIEMPO_DERIVACION) # Tiempo de traslado al centro de salud 
         self.tiempo_atencion = npr.lognormal(MU_ATENCION, SIGMA_ATENCION) # Atencion Llega la ambulancia y se atiende 
        
     def __repr__(self):
@@ -121,10 +120,9 @@ class Control:
     def asignar_base(self, evento):
 
         # Obtenemos el nodo cercano al evento
-        
-        nodo_evento = self.grafo.nodo_cercano(evento.x, evento.y)
+        nodo_evento, tiempo_nodo = self.grafo.nodo_cercano(evento.x, evento.y)
+
         # Corremos Dijsktra para el evento
-        # self.grafo.tiempo_minimo(nodo_evento.id)
         length, ruta = nx.single_source_dijkstra(self.grafo2, nodo_evento.id)
                 
         # Seleccionamos la base a menor tiempo
@@ -136,8 +134,8 @@ class Control:
             base_asignada = bases_disponibles[0]
             tiempo_base = copy.copy(length[base_asignada.nodo_cercano.id])
             self.base_evento.append((evento.x, evento.y, base_asignada.x, base_asignada.y))
-            # ruta = self.grafo.entregar_ruta(base_asignada.nodo_cercano.id, nodo_evento.id)
             self.rutas.append(ruta[base_asignada.nodo_cercano.id])
+
             # Seleccionamos el centro medico de menor tiempo
             centros = [centro for centro in self.centros]
             centros.sort(key=lambda x: length[x.nodo_cercano.id])
@@ -145,14 +143,12 @@ class Control:
             tiempo_centro = copy.copy(length[centro_asignado.nodo_cercano.id])
 
             id_ambulancia = base_asignada.asignar_ambulancia(evento)
-            # self.grafo.reiniciar_caminos()
 
             # Corresmos Dijsktra para ir del Centro Medico a la Base
-            # self.grafo.tiempo_minimo(centro_asignado.nodo_cercano.id)
             length, _ = nx.single_source_dijkstra(self.grafo2, centro_asignado.nodo_cercano.id)
             tiempo_retorno = length[base_asignada.nodo_cercano.id]
-            # self.grafo.reiniciar_caminos()
-            return (tiempo_base + evento.tiempo_despacho + 
+
+            return (tiempo_nodo + tiempo_base + evento.tiempo_despacho + 
                      + evento.tiempo_atencion + tiempo_centro + tiempo_retorno, id_ambulancia, base_asignada, tiempo_base)
 
         # Si no hay ambulancias disponibles
@@ -161,10 +157,10 @@ class Control:
     def cargar_entidades(self):
         bases =  cargar_bases()
         for base in bases:
-            nodo_cercano = self.grafo.nodo_cercano(base[0],base[1])
+            nodo_cercano, _ = self.grafo.nodo_cercano(base[0],base[1])
             self.bases.append(Base(base[0], base[1], nodo_cercano)) #se asigna nodo más cercano a la base
         for centro in cargar_centros():
-            nodo_cercano = self.grafo.nodo_cercano(centro[0],centro[1]) #se asigna nodo más cercano al centro
+            nodo_cercano, _ = self.grafo.nodo_cercano(centro[0],centro[1]) #se asigna nodo más cercano al centro
             self.centros.append(CentroMedico(centro[0],centro[1],nodo_cercano))
         print("SE CARGAN LAS BASES Y LOS CENTROS EN LA CIUDAD\n")
 
@@ -173,6 +169,7 @@ class Simmulacion:
     def __init__(self):
         self.activa =  True 
         self.control = None
+        self.mapa = None
 
         self.crear_entidades()
 
@@ -192,8 +189,8 @@ class Simmulacion:
         self.lista_tiempos_respuesta = []
         self.tiempos_sin_cola = []
 
-        #Seteamos datos que utilizaremos para llevar registro 
-        self.atenciones = 0 #se considera el evento entero
+        # Seteamos datos que utilizaremos para llevar registro 
+        self.atenciones = 0 # Se considera el evento entero
         
     @property
     def proxima_accion(self):
@@ -209,7 +206,8 @@ class Simmulacion:
     def generar_evento(self):
         self.tiempo_actual = self.prox_evento_llega
         self.prox_evento_llega = self.tiempo_actual + timedelta(minutes = int(npr.exponential(1/TASA_LLEGADA)))
-        evento = Evento(self.tiempo_actual)
+        grilla = self.mapa.seleccionar_grilla()
+        evento = Evento(self.tiempo_actual, grilla)
         print(f"\nSe genera el evento {evento.id} en la ubicación {(evento.x , evento.y)}\n")
         # NO HABIA COLA
         if  len(self.cola) == 0:
@@ -278,6 +276,7 @@ class Simmulacion:
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
+        self.mapa = Mapa()
     
     def guardar_tiempos_respuesta(self, path1, path2):
         with open(path1,"w") as archivo:
@@ -302,7 +301,6 @@ class Simmulacion:
                 archivo.write(f"{b[0]};{b[1]};{b[2]};{b[3]}\n")
                 
         with open("Datos Simulacion/rutas_base_evento.csv", "w") as archivo:
-            print(self.control.rutas)
             for ruta in self.control.rutas:
                 for i in range(len(ruta)):
                     if i != (len(ruta)-1):

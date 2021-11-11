@@ -74,27 +74,27 @@ if __name__ == "__main__":
     plt.legend(['Bases','Eventos','Nodos']) #Leyenda grafico: para eventos usar ['Nodos','Eventos','Centros', 'Bases Desocupadas', 'Bases Solución']
 
         
-    for ruta in RUTAS:
-        l = 0
-        while l < len(ruta)-1:
-            origen = ruta[l]
-            destino =ruta[l+1]
-            plt.plot([origen[0], destino[0]],[origen[1],destino[1]], color="green")
-            l += 1
+# for ruta in RUTAS:
+#     l = 0
+#     while l < len(ruta)-1:
+#         origen = ruta[l]
+#         destino =ruta[l+1]
+#         plt.plot([origen[0], destino[0]],[origen[1],destino[1]], color="green")
+#         l += 1
 
-    with open('Datos/arcos_coordenados.csv') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
-        for row in csv_reader:
-            if line_count == 0:
-                line_count += 1
-            else:
-                p1x = float(row[0])
-                p1y = float(row[1])
-                p2x = float(row[2])
-                p2y = float(row[3])
-                plt.plot([p1x, p2x],[p1y, p2y], c="lightseagreen", linewidth=0.1)
-                line_count += 1
+# with open('Datos/arcos_coordenados.csv') as csv_file:
+#     csv_reader = csv.reader(csv_file, delimiter=',')
+#     line_count = 0
+#     for row in csv_reader:
+#         if line_count == 0:
+#             line_count += 1
+#         else:
+#             p1x = float(row[0])
+#             p1y = float(row[1])
+#             p2x = float(row[2])
+#             p2y = float(row[3])
+#             plt.plot([p1x, p2x],[p1y, p2y], c="lightseagreen", linewidth=0.1)
+#             line_count += 1
     plt.ylabel('Y')
     plt.xlabel('X')
     plt.show()
