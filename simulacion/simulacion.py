@@ -125,7 +125,7 @@ class Control:
         nodo_evento = self.grafo.nodo_cercano(evento.x, evento.y)
         # Corremos Dijsktra para el evento
         # self.grafo.tiempo_minimo(nodo_evento.id)
-        length, _ = nx.single_source_dijkstra(self.grafo2, nodo_evento.id)
+        length, ruta = nx.single_source_dijkstra(self.grafo2, nodo_evento.id)
                 
         # Seleccionamos la base a menor tiempo
         bases_disponibles  = [base for base in self.bases if base.ambulancias_disponibles]
@@ -137,7 +137,7 @@ class Control:
             tiempo_base = copy.copy(length[base_asignada.nodo_cercano.id])
             self.base_evento.append((evento.x, evento.y, base_asignada.x, base_asignada.y))
             # ruta = self.grafo.entregar_ruta(base_asignada.nodo_cercano.id, nodo_evento.id)
-            # self.rutas.append(ruta)
+            self.rutas.append(ruta[base_asignada.nodo_cercano.id])
             # Seleccionamos el centro medico de menor tiempo
             centros = [centro for centro in self.centros]
             centros.sort(key=lambda x: length[x.nodo_cercano.id])
@@ -271,9 +271,9 @@ class Simmulacion:
         print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
-        self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv", "Datos Simulacion/promedio_sin_cola_viejo.csv")
+        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv", "Datos Simulacion/promedio_sin_cola_viejo.csv")
         # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_viejo.csv", "Datos Simulacion/t_respuesta_sin_cola_viejo.csv")
-        # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
+        self.guardar_base_evento("Datos Simulacion/base_evento.csv")
         
     def crear_entidades(self):
         self.control = Control()
@@ -302,17 +302,18 @@ class Simmulacion:
                 archivo.write(f"{b[0]};{b[1]};{b[2]};{b[3]}\n")
                 
         with open("Datos Simulacion/rutas_base_evento.csv", "w") as archivo:
+            print(self.control.rutas)
             for ruta in self.control.rutas:
                 for i in range(len(ruta)):
                     if i != (len(ruta)-1):
-                        archivo.write(f"{ruta[i][0], ruta[i][1], ruta[i][2]};")
+                        archivo.write(f"{self.control.grafo.nodos[ruta[i]].x}, {self.control.grafo.nodos[ruta[i]].y} ;")
                     else:
-                        archivo.write(f"{ruta[i][0], ruta[i][1], ruta[i][2]}\n")
+                        archivo.write(f"{self.control.grafo.nodos[ruta[i]].x}, {self.control.grafo.nodos[ruta[i]].y}\n")
 
 
 if __name__ == "__main__":
     inicio = 1
-    fin = 30
+    fin = 1
     n = inicio
     while n <= fin:
         npr.seed(n)

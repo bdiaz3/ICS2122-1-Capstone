@@ -31,8 +31,8 @@ with open("Datos Simulacion/rutas_base_evento.csv", "r") as archivo:
     for linea in lineas:
         linea = linea.strip().split(";")
         for l in range(len(linea)):
-            elemento = linea[l].strip("(").strip(")").split(",")
-            linea[l] = (float(elemento[0]), float(elemento[1]), float(elemento[2]))
+            elemento = linea[l].strip().split(",")
+            linea[l] = (float(elemento[0]), float(elemento[1]))
         RUTAS.append(linea)
 
 with open('Datos/bases.csv') as csv_file:
@@ -68,10 +68,10 @@ for i in range(len(COORDENADA_X_BASES)):
         COORDENADA_Y_BASES_SOLUCION.append(COORDENADA_Y_BASES[i])
 
 if __name__ == "__main__":
-    plt.scatter(COORDENADA_X_BASES_SOLUCION, COORDENADA_Y_BASES_SOLUCION, c = 'red', s=15)
-    plt.scatter(COORDENADA_X_EVENTOS, COORDENADA_Y_EVENTOS, c = 'green', s=10)
-    plt.scatter(COORDENADA_X_NODOS, COORDENADA_Y_NODOS, c = 'BLUE', s=1)
-    plt.legend(['Bases','Eventos']) #Leyenda grafico: para eventos usar ['Nodos','Eventos','Centros', 'Bases Desocupadas', 'Bases Solución']
+    plt.scatter(COORDENADA_X_BASES_SOLUCION, COORDENADA_Y_BASES_SOLUCION, c = 'black', s=15)
+    plt.scatter(COORDENADA_X_EVENTOS, COORDENADA_Y_EVENTOS, c = 'red', s=12)
+    plt.scatter(COORDENADA_X_NODOS, COORDENADA_Y_NODOS, c = 'blue', s=0.5)
+    plt.legend(['Bases','Eventos','Nodos']) #Leyenda grafico: para eventos usar ['Nodos','Eventos','Centros', 'Bases Desocupadas', 'Bases Solución']
 
         
     for ruta in RUTAS:
@@ -79,14 +79,7 @@ if __name__ == "__main__":
         while l < len(ruta)-1:
             origen = ruta[l]
             destino =ruta[l+1]
-            tiempo = origen[2]
-            if tiempo < 5:
-                c = "green"
-            elif 5 < tiempo < 15:
-                c = "orange"
-            else:
-                c = "red"
-            plt.plot([origen[0], destino[0]],[origen[1],destino[1]], color=c)
+            plt.plot([origen[0], destino[0]],[origen[1],destino[1]], color="green")
             l += 1
 
     with open('Datos/arcos_coordenados.csv') as csv_file:
