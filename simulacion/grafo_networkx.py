@@ -3,7 +3,7 @@ import math
 
 def dis(x1, x2, y1, y2):
     distancia = math.sqrt((float(x2)-float(x1))**2 + (float(y2)-float(y1))**2)
-    return distancia
+    return distancia*0.2
 
 def cargar_nodos(path, grafo):
     with open(path, "r", encoding="utf-8") as nodos:
