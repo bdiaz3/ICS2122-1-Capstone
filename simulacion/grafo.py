@@ -55,7 +55,7 @@ class Grafo:
     def distancia(self, id_origen, id_destino):
         origen = self.nodos[id_origen]
         destino = self.nodos[id_destino]
-        return math.sqrt((origen.x-destino.x)**2 + (origen.y-destino.y)**2)
+        return math.sqrt((origen.x-destino.x)**2 + (origen.y-destino.y)**2)*0.2
 
     # Este metodo usa Dijkstra para encontrar la distancia minima desde "id_inicio" hasta todos los
     # otros nodos del Gráfo. # Networkz
@@ -89,11 +89,11 @@ class Grafo:
         distancia = float("Infinity")
         cercano = None
         for nodo in  self.nodos.values():
-            nueva_dist = math.sqrt((x-nodo.x)**2 + (y-nodo.y)**2)
+            nueva_dist = math.sqrt((x-nodo.x)**2 + (y-nodo.y)**2)*0.2
             if nueva_dist < distancia:
                 distancia = nueva_dist
                 cercano = nodo
-        tiempo = distancia/35 # Asumimos 35 km/h
+        tiempo = distancia*60/35 # Asumimos 35 km/h
         return cercano, tiempo
     
     def entregar_ruta(self, origen_id, destino_id):
