@@ -1,2 +1,2 @@
 
-        self.ambulancias[id_ambulancia].centro_asignado = None
+            tiempo_retorno = length[base_asignada.nodo_cercano.id]
