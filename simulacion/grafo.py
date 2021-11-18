@@ -95,6 +95,7 @@ class Grafo:
                 cercano = nodo
         tiempo = distancia*60/35 # Asumimos 35 km/h
         return cercano, tiempo
+
     
     def entregar_ruta(self, origen_id, destino_id):
         if origen_id == destino_id:
