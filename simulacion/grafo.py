@@ -89,12 +89,13 @@ class Grafo:
         distancia = float("Infinity")
         cercano = None
         for nodo in  self.nodos.values():
-            nueva_dist = math.sqrt((x-nodo.x)**2 + (y-nodo.y)**2)
+            nueva_dist = math.sqrt((x-nodo.x)**2 + (y-nodo.y)**2)*0.2
             if nueva_dist < distancia:
                 distancia = nueva_dist
                 cercano = nodo
-        tiempo = distancia/35 # Asumimos 35 km/h
-        return cercano, tiempo*60
+        tiempo = distancia*60/35 # Asumimos 35 km/h
+        return cercano, tiempo
+
     
     def entregar_ruta(self, origen_id, destino_id):
         if origen_id == destino_id:

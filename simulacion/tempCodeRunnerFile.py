@@ -1,1 +1,1 @@
-TIEMPO_SIMULACION
+estado
