@@ -34,6 +34,7 @@ class Ambulancia:
         # Setamos variabels para registrar datos
         self.llamadas_atendidas = 0
         self.disponible_en_centro = False
+        self.tiempo_ocupada = 0
 
 class Base:
     # Generador de ID
@@ -52,6 +53,7 @@ class Base:
         self.ambulancias_disponibles = True
         self._ambulancias_utilizadas = 0
         self.disponible_en_centro = False
+        
         
         # Se crea 1 ambulancia por base
         for i in range(AMBULANCIAS_X_BASE):
@@ -102,6 +104,7 @@ class Base:
         self.ambulancias[id_ambulancia].evento_asignado = None
         self.ambulancias_utilizadas -= 1
         self.ambulancias[id_ambulancia].tiempos.append((self.ambulancias[id_ambulancia].hora_llegada - self.ambulancias[id_ambulancia].hora_salida)/timedelta(minutes=1))
+        self.ambulancias[id_ambulancia].tiempo_ocupada += (self.ambulancias[id_ambulancia].hora_llegada - self.ambulancias[id_ambulancia].hora_salida)/timedelta(minutes=1)
         self.ambulancias[id_ambulancia].hora_salida = 0
         self.ambulancias[id_ambulancia].hora_llegada = 0
         
@@ -251,7 +254,7 @@ class Simmulacion:
 
         # Seteamos datos que utilizaremos para llevar registro 
         self.atenciones = 0 # Se considera el evento entero
-        
+        self.cantidad_reasignaciones = 0 #para ver cuantas reasignaciones ocurrieron por la mejora implementada
     @property
     def proxima_accion(self):
         # print(self.cola)
@@ -371,6 +374,7 @@ class Simmulacion:
             seleccion =  mejoras.pop(0)
             ambulancia_viaje, tiempo_centro_evento, base_viaje, evento = seleccion[0], seleccion[1], seleccion[3], seleccion[4]
             # print(f"La ambulancia {id_ambulancia} puede llegar antes al evento {ambulancia_viaje.evento_asignado.id}, por lo que se reasignó.")
+            self.cantidad_reasignaciones += 1
             # Desocupamos la ambulancia que está en el centro
             elem = [elem for elem in self.tiempos_retorno if elem[1] == id_ambulancia][0]
             self.tiempos_retorno.remove(elem)
@@ -455,18 +459,21 @@ class Simmulacion:
             for ambulancia in base.ambulancias.values():
                 contador += ambulancia.llamadas_atendidas
                 self.atenciones += ambulancia.llamadas_atendidas
+                ocupacion = ambulancia.tiempo_ocupada/(time.time()-tiempo_inicial)
+                self.guardar_ocupacion_ambulancias("Datos Simulación/ocupacion_ambulancias.csv", ambulancia.id, ocupacion)
 
             print(f"La base {base.id} atendió {contador} llamadas en total")
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
         print(f"TIEMPO RESPUESTA PROMEDIO 2: {sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
         # print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
+        print(f"Se realizaron un total de {self.cantidad_reasignaciones} de reasignaciones")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
         # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv", "Datos Simulacion/promedio_sin_cola_viejo.csv")
         # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_viejo.csv", "Datos Simulacion/t_respuesta_sin_cola_viejo.csv")
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
-        
+        # self.guardar_reasignaciones("Datos Simulación/reasignaciones.csv")
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
@@ -502,6 +509,13 @@ class Simmulacion:
                     else:
                         archivo.write(f"{self.control.grafo.nodos[ruta[i]].x}, {self.control.grafo.nodos[ruta[i]].y}\n")
 
+    def guardar_reasignaciones(self, path):
+        with open(path, "a+") as archivo:
+            archivo.write(f"{self.cantidad_reasignaciones}\n")
+
+    def guardar_ocupacion_ambulancias(self, path, id_ambulancia, ocupacion):
+        with open(path, "a+") as archivo:
+            archivo.write(f"{id_ambulancia},{ocupacion*100}%\n")
 
 if __name__ == "__main__":
     inicio = 1
