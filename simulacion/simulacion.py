@@ -5,7 +5,8 @@ import time
 import copy
 from collections import deque
 from datetime import datetime, timedelta
-from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, MU_ATENCION, SIGMA_ATENCION, AMBULANCIAS_X_BASE,CASO_BASE
+from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, \
+MU_ATENCION, SIGMA_ATENCION, AMBULANCIAS_X_BASE,CASO, INICIO, FIN
 from cargar_datos import cargar_bases, cargar_centros
 from grafo_networkx import cargar_grafo
 import networkx as nx
@@ -231,10 +232,11 @@ class Control:
 
 class Simmulacion:
 
-    def __init__(self):
+    def __init__(self,n):
         self.activa =  True 
         self.control = None
         self.mapa = None
+        self.n = n
 
         self.crear_entidades()
 
@@ -334,7 +336,7 @@ class Simmulacion:
                 for elem in self.tiempos_retorno:
                     if elem[1] == base_asignada.ambulancias[id_ambulancia].id:
                         self.tiempos_retorno.remove(elem)
-                self.lista_tiempos_respuesta.append(int(tiempo_base))
+                self.tiempos_sin_cola.append(int(tiempo_base))
                 self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
                 self.tiempos_retorno.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total+tiempo_retorno)), id_ambulancia, base_asignada])
             else:
@@ -354,7 +356,7 @@ class Simmulacion:
         if centro != None:
             nodo_centro = centro.nodo_cercano
         # Iteramos sobre las ambulancias 
-        if not CASO_BASE:
+        if CASO != "BASE":
             for base in self.control.bases:
                 for _, ambulancia_viaje in base.ambulancias.items():
                     evento = ambulancia_viaje.evento_asignado
@@ -433,6 +435,7 @@ class Simmulacion:
                 if elem[1] == base_asignada.ambulancias[id_ambulancia].id:
                     self.tiempos_retorno.remove(elem)
             self.lista_tiempos_respuesta.append(int(tiempo_base)+evento.tiempo_espera/timedelta(minutes=1))
+            self.tiempos_sin_cola.append(tiempo_base)
             self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
             self.tiempos_retorno.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)) + timedelta(minutes = int(tiempo_retorno)), id_ambulancia, base_asignada])
         else:
@@ -464,10 +467,11 @@ class Simmulacion:
                 self.atenciones += ambulancia.llamadas_atendidas
                 #print(f"Tiempo ocupada {ambulancia.tiempo_ocupada}")
                 #print(TIEMPO_SIMULACION*60)
-                
+                #print(ambulancia.tiempo_ocupada)
                 ocupacion = (ambulancia.tiempo_ocupada/(TIEMPO_SIMULACION*60))*100
-                print(f"Ocupación ambulancia  {ambulancia.id} - {ocupacion}%")
-                self.guardar_ocupacion_ambulancias("Datos Simulacion/ocupacion_ambulancias.csv", ambulancia.id, ocupacion)
+                #print(f"Ocupación ambulancia  {ambulancia.id} - {ocupacion}%")
+                #No descomentar esto!!
+                #self.guardar_ocupacion_ambulancias("Datos Simulacion/ocupacion_ambulancias.csv", ambulancia.id, ocupacion)
 
             #print(f"La base {base.id} atendió {contador} llamadas en total")
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
@@ -477,10 +481,11 @@ class Simmulacion:
         print(f"Se realizaron un total de {self.cantidad_reasignaciones} de reasignaciones")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
-        # self.guardar_tiempo_promedio("Datos Simulacion/tiempo_promedio_viejo.csv", "Datos Simulacion/promedio_sin_cola_viejo.csv")
-        # self.guardar_tiempos_respuesta("Datos Simulacion/t_respuesta_modelo_viejo.csv", "Datos Simulacion/t_respuesta_sin_cola_viejo.csv")
+        # Borrar este archivo antes de correrlo de nuevo
+        self.guardar_tiempo_promedio(f"Datos Simulacion/tiempo_promedio_{CASO}.csv", "Datos Simulacion/promedio_sin_cola_{CASO}.csv")
+        self.guardar_tiempos_respuesta(f"Datos Simulacion/Tiempos Respuesta/Con Cola/t_respuesta_{CASO}_{self.n}.csv", "Datos Simulacion/Tiempos Respuesta/Sin Cola/t_sin_cola_{CASO}_{self.n}.csv")
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
-        # self.guardar_reasignaciones("Datos Simulación/reasignaciones.csv")
+        self.guardar_reasignaciones("Datos Simulación/reasignaciones.csv")
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
@@ -525,13 +530,13 @@ class Simmulacion:
             archivo.write(f"{id_ambulancia},{ocupacion}%\n")
 
 if __name__ == "__main__":
-    inicio = 1
-    fin = 1
+    inicio = INICIO
+    fin = FIN
     n = inicio
     while n <= fin:
         npr.seed(n)
         random.seed(n)
-        sim = Simmulacion()
+        sim = Simmulacion(n)
         sim.simular()
         print(f"Fin seed {n}\n")
         Evento.ID = 0
