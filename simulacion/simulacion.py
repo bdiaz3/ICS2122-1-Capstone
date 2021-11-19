@@ -104,7 +104,10 @@ class Base:
         self.ambulancias[id_ambulancia].evento_asignado = None
         self.ambulancias_utilizadas -= 1
         self.ambulancias[id_ambulancia].tiempos.append((self.ambulancias[id_ambulancia].hora_llegada - self.ambulancias[id_ambulancia].hora_salida)/timedelta(minutes=1))
+        #print((self.ambulancias[id_ambulancia].hora_llegada - self.ambulancias[id_ambulancia].hora_salida)/timedelta(minutes=1))
+        #print(f"ID: {id_ambulancia} ocupación {self.ambulancias[id_ambulancia].tiempo_ocupada}")
         self.ambulancias[id_ambulancia].tiempo_ocupada += (self.ambulancias[id_ambulancia].hora_llegada - self.ambulancias[id_ambulancia].hora_salida)/timedelta(minutes=1)
+        #print(f"ID: {id_ambulancia} ocupación {self.ambulancias[id_ambulancia].tiempo_ocupada}")
         self.ambulancias[id_ambulancia].hora_salida = 0
         self.ambulancias[id_ambulancia].hora_llegada = 0
         
@@ -459,10 +462,14 @@ class Simmulacion:
             for ambulancia in base.ambulancias.values():
                 contador += ambulancia.llamadas_atendidas
                 self.atenciones += ambulancia.llamadas_atendidas
-                ocupacion = ambulancia.tiempo_ocupada/(time.time()-tiempo_inicial)
-                self.guardar_ocupacion_ambulancias("Datos Simulación/ocupacion_ambulancias.csv", ambulancia.id, ocupacion)
+                #print(f"Tiempo ocupada {ambulancia.tiempo_ocupada}")
+                #print(TIEMPO_SIMULACION*60)
+                
+                ocupacion = (ambulancia.tiempo_ocupada/(TIEMPO_SIMULACION*60))*100
+                print(f"Ocupación ambulancia  {ambulancia.id} - {ocupacion}%")
+                self.guardar_ocupacion_ambulancias("Datos Simulacion/ocupacion_ambulancias.csv", ambulancia.id, ocupacion)
 
-            print(f"La base {base.id} atendió {contador} llamadas en total")
+            #print(f"La base {base.id} atendió {contador} llamadas en total")
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
         print(f"TIEMPO RESPUESTA PROMEDIO 2: {sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
@@ -515,7 +522,7 @@ class Simmulacion:
 
     def guardar_ocupacion_ambulancias(self, path, id_ambulancia, ocupacion):
         with open(path, "a+") as archivo:
-            archivo.write(f"{id_ambulancia},{ocupacion*100}%\n")
+            archivo.write(f"{id_ambulancia},{ocupacion}%\n")
 
 if __name__ == "__main__":
     inicio = 1
