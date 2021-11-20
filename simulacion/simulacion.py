@@ -6,7 +6,7 @@ import copy
 from collections import deque
 from datetime import datetime, timedelta
 from parametros import TIEMPO_SIMULACION, TASA_LLEGADA, TIEMPO_DESPACHO, \
-MU_ATENCION, SIGMA_ATENCION, AMBULANCIAS_X_BASE,CASO, INICIO, FIN
+MU_ATENCION, SIGMA_ATENCION, AMBULANCIAS_X_BASE, CASO, INICIO, FIN
 from cargar_datos import cargar_bases, cargar_centros
 from grafo_networkx import cargar_grafo
 import networkx as nx
@@ -482,14 +482,20 @@ class Simmulacion:
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
         if len(self.lista_tiempos_respuesta) > 0:
+
             print(f"TIEMPO RESPUESTA PROMEDIO 2: {sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
-            self.guardar_tiempos_respuesta(f"Datos Simulacion/Tiempos Respuesta/Con Cola/t_respuesta_{CASO}_{self.n}.csv", "Datos Simulacion/Tiempos Respuesta/Sin Cola/t_sin_cola_{CASO}_{self.n}.csv")
+        path3 = "Datos Simulacion/Tiempos Respuesta/Con Cola/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"
+        path4 = "Datos Simulacion/Tiempos Respuesta/Sin Cola/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"
+        
+        self.guardar_tiempos_respuesta(path3, path4)
         print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
         print(f"Se realizaron un total de {self.cantidad_reasignaciones} de reasignaciones")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
         # Borrar este archivo antes de correrlo de nuevo
-        self.guardar_tiempo_promedio(f"Datos Simulacion/tiempo_promedio_{CASO}.csv", "Datos Simulacion/promedio_sin_cola_{CASO}.csv")
+        path1 = "Datos Simulacion/tiempo_promedio_"+str(CASO)+".csv"
+        path2 = "Datos Simulacion/tiempo_promedio_sin_cola_"+str(CASO)+".csv"
+        self.guardar_tiempo_promedio(path1,path2)
         
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
         self.guardar_reasignaciones("Datos Simulacion/reasignaciones.csv")
