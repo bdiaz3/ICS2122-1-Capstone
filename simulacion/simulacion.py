@@ -427,14 +427,19 @@ class Simmulacion:
     
     def actualizar_cola(self):
         evento = self.cola.popleft()
+        print("actualiza cola")
+        
         # Asigna la base más cercana al evento con ambulancias disponibles
         evento.tiempo_espera = self.tiempo_actual - evento.tiempo_inicio 
         tiempo_total, tiempo_retorno, id_ambulancia, base_asignada, tiempo_base = self.control.asignar_base(evento, self.tiempo_actual, True)
+        print(f"tiempo total {tiempo_total}")
         if tiempo_total != None:
             for elem in self.tiempos_retorno:
                 if elem[1] == base_asignada.ambulancias[id_ambulancia].id:
                     self.tiempos_retorno.remove(elem)
             self.lista_tiempos_respuesta.append(int(tiempo_base)+evento.tiempo_espera/timedelta(minutes=1))
+            print("Entra")
+            print(self.lista_tiempos_respuesta)
             self.tiempos_sin_cola.append(tiempo_base)
             self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
             self.tiempos_retorno.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)) + timedelta(minutes = int(tiempo_retorno)), id_ambulancia, base_asignada])
@@ -468,7 +473,7 @@ class Simmulacion:
                 #print(f"Tiempo ocupada {ambulancia.tiempo_ocupada}")
                 #print(TIEMPO_SIMULACION*60)
                 #print(ambulancia.tiempo_ocupada)
-                ocupacion = (ambulancia.tiempo_ocupada/(TIEMPO_SIMULACION*60))*100
+                #   ocupacion = (ambulancia.tiempo_ocupada/(TIEMPO_SIMULACION*60))*100
                 #print(f"Ocupación ambulancia  {ambulancia.id} - {ocupacion}%")
                 #No descomentar esto!!
                 #self.guardar_ocupacion_ambulancias("Datos Simulacion/ocupacion_ambulancias.csv", ambulancia.id, ocupacion)
@@ -476,16 +481,18 @@ class Simmulacion:
             #print(f"La base {base.id} atendió {contador} llamadas en total")
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
-        print(f"TIEMPO RESPUESTA PROMEDIO 2: {sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
-        # print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
+        if len(self.lista_tiempos_respuesta) > 0:
+            print(f"TIEMPO RESPUESTA PROMEDIO 2: {sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
+            self.guardar_tiempos_respuesta(f"Datos Simulacion/Tiempos Respuesta/Con Cola/t_respuesta_{CASO}_{self.n}.csv", "Datos Simulacion/Tiempos Respuesta/Sin Cola/t_sin_cola_{CASO}_{self.n}.csv")
+        print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
         print(f"Se realizaron un total de {self.cantidad_reasignaciones} de reasignaciones")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
         print("FIN SIMULACIÓN")
         # Borrar este archivo antes de correrlo de nuevo
         self.guardar_tiempo_promedio(f"Datos Simulacion/tiempo_promedio_{CASO}.csv", "Datos Simulacion/promedio_sin_cola_{CASO}.csv")
-        self.guardar_tiempos_respuesta(f"Datos Simulacion/Tiempos Respuesta/Con Cola/t_respuesta_{CASO}_{self.n}.csv", "Datos Simulacion/Tiempos Respuesta/Sin Cola/t_sin_cola_{CASO}_{self.n}.csv")
+        
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
-        self.guardar_reasignaciones("Datos Simulación/reasignaciones.csv")
+        self.guardar_reasignaciones("Datos Simulacion/reasignaciones.csv")
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
@@ -500,10 +507,12 @@ class Simmulacion:
                 archivo.write(f"{tiempo}\n")
 
     def guardar_tiempo_promedio(self, path1, path2):
-        tiempo_promedio  = sum(self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)
-        with open(path1,"a+") as archivo:
-            archivo.write(f"{tiempo_promedio}\n")
-            
+        if len(self.lista_tiempos_respuesta):
+
+            tiempo_promedio  = sum(self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)
+            with open(path1,"a+") as archivo:
+                archivo.write(f"{tiempo_promedio}\n")
+                
         promedio_sin_cola  = sum(self.tiempos_sin_cola)/len(self.tiempos_sin_cola)
         with open(path2,"a+") as archivo:
             archivo.write(f"{promedio_sin_cola}\n")
