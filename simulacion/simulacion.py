@@ -383,7 +383,7 @@ class Simmulacion:
         if len(mejoras) > 0:
             mejoras.sort(key = lambda x: x[2], reverse = True)
             seleccion =  mejoras.pop(0)
-            ambulancia_viaje, tiempo_centro_evento, delta_tiempo, base_viaje, evento = seleccion[0], seleccion[1], seleccion[2] seleccion[3], seleccion[4]
+            ambulancia_viaje, tiempo_centro_evento, delta_tiempo, base_viaje, evento = seleccion[0], seleccion[1], seleccion[2], seleccion[3], seleccion[4]
             #print(f"La ambulancia {id_ambulancia} puede llegar antes al evento {ambulancia_viaje.evento_asignado.id}, por lo que se reasignó.")
             print(f"La ambulancia {id_ambulancia} puede llegar {delta_tiempo} minutos antes al evento {ambulancia_viaje.evento_asignado.id} que la ambulancia que había sido asignada antes, por lo que se reasigna")
             self.cantidad_reasignaciones += 1
