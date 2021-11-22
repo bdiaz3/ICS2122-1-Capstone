@@ -256,6 +256,8 @@ class Simmulacion:
         self.tiempos_retorno = [] # Lsita con la hora de llegada de retorno
         self.lista_tiempos_respuesta = []
         self.tiempos_sin_cola = []
+        self.tiempo_total = []
+        self.tiempo_posicion = []
 
         # Seteamos datos que utilizaremos para llevar registro 
         self.atenciones = 0 # Se considera el evento entero
@@ -337,6 +339,8 @@ class Simmulacion:
                     if elem[1] == base_asignada.ambulancias[id_ambulancia].id:
                         self.tiempos_retorno.remove(elem)
                 self.tiempos_sin_cola.append(int(tiempo_base))
+                self.tiempo_total.apped(int(tiempo_base + evento.tiempo_atencion + evento.tiempo_despacho))
+                self.tiempo_posicion.append(evento.x, evento.y, tiempo_base)
                 self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
                 self.tiempos_retorno.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total+tiempo_retorno)), id_ambulancia, base_asignada])
             else:
@@ -438,9 +442,9 @@ class Simmulacion:
                 if elem[1] == base_asignada.ambulancias[id_ambulancia].id:
                     self.tiempos_retorno.remove(elem)
             self.lista_tiempos_respuesta.append(int(tiempo_base)+evento.tiempo_espera/timedelta(minutes=1))
-            print("Entra")
-            print(self.lista_tiempos_respuesta)
             self.tiempos_sin_cola.append(tiempo_base)
+            self.tiempo_total.apped(int(tiempo_base + evento.tiempo_atencion + evento.tiempo_despacho+evento.tiempo_espera))
+            self.tiempo_posicion.append(evento.x, evento.y, tiempo_base)
             self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
             self.tiempos_retorno.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)) + timedelta(minutes = int(tiempo_retorno)), id_ambulancia, base_asignada])
         else:
@@ -482,12 +486,11 @@ class Simmulacion:
         print(f"\nLARGO COLA FINAL {len(self.cola)}")      
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
         if len(self.lista_tiempos_respuesta) > 0:
-
             print(f"TIEMPO RESPUESTA PROMEDIO 2: {sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
         path3 = "Datos Simulacion/Tiempos Respuesta/Con Cola/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"
         path4 = "Datos Simulacion/Tiempos Respuesta/Sin Cola/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"
-        
-        self.guardar_tiempos_respuesta(path3, path4)
+        path5 = "Datos Simulacion/Tiempos Respuesta/Total/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"   
+        self.guardar_tiempos_respuesta(path3, path4, path5)
         print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
         print(f"Se realizaron un total de {self.cantidad_reasignaciones} de reasignaciones")
         print(f"TIEMPO TOTAL DE LA SIMULACIÓN:{time.time()-tiempo_inicial}")
@@ -495,7 +498,9 @@ class Simmulacion:
         # Borrar este archivo antes de correrlo de nuevo
         path1 = "Datos Simulacion/tiempo_promedio_"+str(CASO)+".csv"
         path2 = "Datos Simulacion/tiempo_promedio_sin_cola_"+str(CASO)+".csv"
-        self.guardar_tiempo_promedio(path1,path2)
+        # self.guardar_tiempo_promedio(path1,path2)
+        path = "Datos Simulacion/Tiempos Respuesta/Posicion/tiempo_posicion"+str(CASO)+"_"+str(self.n)+".csv"  
+        self.guardar_tiempos_posicion(path)
         
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
         self.guardar_reasignaciones("Datos Simulacion/reasignaciones.csv")
@@ -504,21 +509,30 @@ class Simmulacion:
         self.control.cargar_entidades()
         self.mapa = Mapa()
     
-    def guardar_tiempos_respuesta(self, path1, path2):
+    def guardar_tiempos_respuesta(self, path1, path2, path3):
         with open(path1,"w") as archivo:
             for tiempo in self.lista_tiempos_respuesta:
                 archivo.write(f"{tiempo}\n")
+
         with open(path2,"w") as archivo:
             for tiempo in self.tiempos_sin_cola:
                 archivo.write(f"{tiempo}\n")
 
+        with open(path3,"w") as archivo:
+            for tiempo in self.tiempo_total:
+                archivo.write(f"{tiempo}\n")
+
+    def guardar_tiempos_posicion(self, path):
+        with open(path,"w") as archivo:
+            for evento in self.tiempos_posicion:
+                archivo.write(f"{evento[0]}; {evento[1]}; {evento[2]}\n")
+
     def guardar_tiempo_promedio(self, path1, path2):
         if len(self.lista_tiempos_respuesta):
-
             tiempo_promedio  = sum(self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)
             with open(path1,"a+") as archivo:
                 archivo.write(f"{tiempo_promedio}\n")
-                
+
         promedio_sin_cola  = sum(self.tiempos_sin_cola)/len(self.tiempos_sin_cola)
         with open(path2,"a+") as archivo:
             archivo.write(f"{promedio_sin_cola}\n")
