@@ -25,7 +25,7 @@ class Ambulancia:
     def __init__(self):
         self.id = self.incr()
         self.disponible = True
-        self.evento_asignado = None 
+        self.evento_asignado = None
         self.hora_llegada = 0
         self.centro_asignado = None
         self.retorno_forzado = False
@@ -50,12 +50,12 @@ class Base:
         self.x = x
         self.y = y
         self.nodo_cercano = nodo_cercano
-        self.ambulancias = {} # ID, ambulancia 
+        self.ambulancias = {} # ID, ambulancia
         self.ambulancias_disponibles = True
         self._ambulancias_utilizadas = 0
         self.disponible_en_centro = False
-        
-        
+
+
         # Se crea 1 ambulancia por base
         for i in range(AMBULANCIAS_X_BASE):
             ambulancia = Ambulancia()
@@ -89,7 +89,7 @@ class Base:
         ambulancia_seleccionada.centro_asignado = centro_asignado
         # print(f"A la Ambulancia {ambulancia_seleccionada.id} se le asigna el evento {evento.id}\n")
         return ambulancia_seleccionada.id
-    
+
     def terminar_atencion(self, id_ambulancia, reasignacion =  False):
         if not self.ambulancias[id_ambulancia].retorno_forzado and not reasignacion:
             pass
@@ -111,7 +111,7 @@ class Base:
         #print(f"ID: {id_ambulancia} ocupación {self.ambulancias[id_ambulancia].tiempo_ocupada}")
         self.ambulancias[id_ambulancia].hora_salida = 0
         self.ambulancias[id_ambulancia].hora_llegada = 0
-        
+
     def __repr__(self):
         return f"{str(self.x) ,str(self.y)}"
 
@@ -130,8 +130,8 @@ class Evento:
         self.y = npr.uniform(grilla.y_min, grilla.y_max)
         self.tiempo_espera = 0
         self.tiempo_despacho = npr.exponential(TIEMPO_DESPACHO) # Desde que ocurre la llamada hasta que se encuentra la ambulancia
-        self.tiempo_atencion = npr.lognormal(MU_ATENCION, SIGMA_ATENCION) # Atencion Llega la ambulancia y se atiende 
-       
+        self.tiempo_atencion = npr.lognormal(MU_ATENCION, SIGMA_ATENCION) # Atencion Llega la ambulancia y se atiende
+
     def __repr__(self):
         return str(self.id)
 
@@ -150,7 +150,7 @@ class Control:
         self.base_evento = []
         self.centro_evento = []
         self.rutas = []
-        
+
     def asignar_base(self, evento, tiempo_actual, cola=False):
 
         # Obtenemos el nodo cercano al evento
@@ -158,7 +158,7 @@ class Control:
 
         # Corremos Dijsktra para el evento
         length, ruta = nx.single_source_dijkstra(self.grafo2, nodo_evento.id)
-                
+
         # Seleccionamos la base a menor tiempo
         bases_disponibles  = [base for base in self.bases if base.ambulancias_disponibles]
 
@@ -183,7 +183,7 @@ class Control:
             tiempo_retorno = length[base_asignada.nodo_cercano.id]
             base_asignada.ambulancias[id_ambulancia].tiempo_retorno = tiempo_retorno
 
-            return (tiempo_base + evento.tiempo_despacho + 
+            return (tiempo_base + evento.tiempo_despacho +
                      + evento.tiempo_atencion + tiempo_centro, tiempo_retorno, id_ambulancia, base_asignada, tiempo_base)
 
         bases_centro_disponible = []
@@ -214,7 +214,7 @@ class Control:
             tiempo_retorno = length[base_asignada.nodo_cercano.id]
             base_asignada.ambulancias[id_ambulancia].tiempo_retorno = tiempo_retorno
 
-            return (tiempo_centro_evento + evento.tiempo_despacho + 
+            return (tiempo_centro_evento + evento.tiempo_despacho +
                      + evento.tiempo_atencion + tiempo_centro, tiempo_retorno, id_ambulancia, base_asignada, tiempo_centro_evento)
 
         # Si no hay ambulancias disponibles
@@ -233,7 +233,7 @@ class Control:
 class Simmulacion:
 
     def __init__(self,n):
-        self.activa =  True 
+        self.activa =  True
         self.control = None
         self.mapa = None
         self.n = n
@@ -242,14 +242,14 @@ class Simmulacion:
 
         date = datetime(2021, 9, 26)
         newdate = date.replace(hour=0)
-        
+
         # Seteamos variable de tiempo
         self.tiempo_actual = newdate
         self.tiempo_maximo = newdate + timedelta(hours = TIEMPO_SIMULACION)
 
         # Seteamos cola para llamadas
         self.cola = deque()
-        
+
         # Seteamos inputs de distribiciones y estrucutras de la simulación
         self.prox_evento_llega = self.tiempo_actual + timedelta(minutes = int(npr.exponential(1/TASA_LLEGADA)))
         self.tiempos_ambulancias = [] # Lista de la forma [[tiempo, id_mbulancia, base_asignada]]
@@ -259,9 +259,10 @@ class Simmulacion:
         self.tiempo_total = []
         self.tiempo_posicion = []
 
-        # Seteamos datos que utilizaremos para llevar registro 
+        # Seteamos datos que utilizaremos para llevar registro
         self.atenciones = 0 # Se considera el evento entero
         self.cantidad_reasignaciones = 0 #para ver cuantas reasignaciones ocurrieron por la mejora implementada
+
     @property
     def proxima_accion(self):
         # print(self.cola)
@@ -302,8 +303,8 @@ class Simmulacion:
                     min_retornos = self.tiempos_retorno.pop(0)
                     return("Retorno a Base", min_retornos)
                 else:
-                    return ("Generar evento", None)    
-        
+                    return ("Generar evento", None)
+
         elif len(self.tiempos_ambulancias) > 0 and len(self.tiempos_retorno) == 0:
             self.tiempos_ambulancias.sort(key = lambda x: x[0])
             if self.tiempos_ambulancias[0][0] <= self.prox_evento_llega:
@@ -318,8 +319,8 @@ class Simmulacion:
                     min_retornos = self.tiempos_retorno.pop(0)
                     return("Retorno a Base", min_retornos)
             else:
-                return ("Generar evento", None)       
-            
+                return ("Generar evento", None)
+
         # Generación evento
         return ("Generar evento", None)
 
@@ -332,7 +333,7 @@ class Simmulacion:
         # NO HABIA COLA
         if  len(self.cola) == 0:
             # Asigna la base más cercana al evento con ambulancias disponiblesS
-            tiempo_total, tiempo_retorno, id_ambulancia, base_asignada, tiempo_base = self.control.asignar_base(evento, self.tiempo_actual)  
+            tiempo_total, tiempo_retorno, id_ambulancia, base_asignada, tiempo_base = self.control.asignar_base(evento, self.tiempo_actual)
             # Habían ambulancias disponibles
             if tiempo_total != None:
                 for elem in self.tiempos_retorno:
@@ -346,11 +347,11 @@ class Simmulacion:
             else:
                 # print(f"Se agrega a la cola el evento {evento.id}\n")
                 self.cola.append(evento)
-                
+
         else:
             # print(f"Se agrega a la cola el evento {evento.id}\n")
             self.cola.append(evento)
-        
+
     def fin_atencion(self, tiempo, id_ambulancia, base_asignada):
         # print(f"La ambulancia {id_ambulancia} ha terminado su atención del evento {base_asignada.ambulancias[id_ambulancia].evento_asignado.id}")
         self.tiempo_actual = tiempo
@@ -359,7 +360,7 @@ class Simmulacion:
         centro =  base_asignada.ambulancias[id_ambulancia].centro_asignado
         if centro != None:
             nodo_centro = centro.nodo_cercano
-        # Iteramos sobre las ambulancias 
+        # Iteramos sobre las ambulancias
         if CASO != "BASE":
             for base in self.control.bases:
                 for _, ambulancia_viaje in base.ambulancias.items():
@@ -381,8 +382,9 @@ class Simmulacion:
         if len(mejoras) > 0:
             mejoras.sort(key = lambda x: x[2], reverse = True)
             seleccion =  mejoras.pop(0)
-            ambulancia_viaje, tiempo_centro_evento, base_viaje, evento = seleccion[0], seleccion[1], seleccion[3], seleccion[4]
-            # print(f"La ambulancia {id_ambulancia} puede llegar antes al evento {ambulancia_viaje.evento_asignado.id}, por lo que se reasignó.")
+            ambulancia_viaje, tiempo_centro_evento, delta_tiempo, base_viaje, evento = seleccion[0], seleccion[1], seleccion[2] seleccion[3], seleccion[4]
+            #print(f"La ambulancia {id_ambulancia} puede llegar antes al evento {ambulancia_viaje.evento_asignado.id}, por lo que se reasignó.")
+            print(f"La ambulancia {id_ambulancia} puede llegar {delta_tiempo} minutos antes al evento {ambulancia_viaje.evento_asignado.id} que la ambulancia que había sido asignada antes, por lo que se reasigna")
             self.cantidad_reasignaciones += 1
             # Desocupamos la ambulancia que está en el centro
             elem = [elem for elem in self.tiempos_retorno if elem[1] == id_ambulancia][0]
@@ -391,17 +393,17 @@ class Simmulacion:
             base_asignada.terminar_atencion(id_ambulancia, True)
 
             # Le asignamos el nuevo evento
-            id_ambulancia = base_asignada.asignar_ambulancia(evento, self.tiempo_actual + 
+            id_ambulancia = base_asignada.asignar_ambulancia(evento, self.tiempo_actual +
                                 timedelta(minutes = int(tiempo_centro_evento)), ambulancia_viaje.centro_asignado, self.tiempo_actual, id_ambulancia)
             self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_centro_evento)), id_ambulancia, base_asignada])
-            
+
             # Ahora necesitamos el tiempo de retorno
             nodo_centro =  base_asignada.ambulancias[id_ambulancia].centro_asignado.nodo_cercano
             # Corremos Dijsktra para el centro
             length, _ = nx.single_source_dijkstra(self.control.grafo2, nodo_centro.id)
             tiempo_retorno = length[base_asignada.nodo_cercano.id]
             self.tiempos_retorno.append([self.tiempo_actual + timedelta(minutes = int(tiempo_centro_evento+tiempo_retorno)), id_ambulancia, base_asignada])
-            
+
             # print(f"La ambulancia {ambulancia_viaje.id} va en camino a la base por reasignacion.")
              # Lo eliminamos de la lista de ambulancias
             for elem in self.tiempos_ambulancias:
@@ -428,13 +430,13 @@ class Simmulacion:
             base_asignada.ambulancias[id_ambulancia].llamadas_atendidas += 1
         base_asignada.terminar_atencion(id_ambulancia)
         base_asignada.ambulancias[id_ambulancia].centro_asignado = None
-    
+
     def actualizar_cola(self):
         evento = self.cola.popleft()
         print("actualiza cola")
-        
+
         # Asigna la base más cercana al evento con ambulancias disponibles
-        evento.tiempo_espera = self.tiempo_actual - evento.tiempo_inicio 
+        evento.tiempo_espera = self.tiempo_actual - evento.tiempo_inicio
         tiempo_total, tiempo_retorno, id_ambulancia, base_asignada, tiempo_base = self.control.asignar_base(evento, self.tiempo_actual, True)
         print(f"tiempo total {tiempo_total}")
         if tiempo_total != None:
@@ -468,7 +470,7 @@ class Simmulacion:
                 self.retorno_a_base(tiempo_retorno, id_ambulancia, base_asignada)
                 if self.cola:
                     self.actualizar_cola()
-        
+
         for base in self.control.bases:
             contador = 0
             for ambulancia in base.ambulancias.values():
@@ -483,13 +485,13 @@ class Simmulacion:
                 #self.guardar_ocupacion_ambulancias("Datos Simulacion/ocupacion_ambulancias.csv", ambulancia.id, ocupacion)
 
             #print(f"La base {base.id} atendió {contador} llamadas en total")
-        print(f"\nLARGO COLA FINAL {len(self.cola)}")      
+        print(f"\nLARGO COLA FINAL {len(self.cola)}")
         print(f"SE REALIZARON UN TOTAL DE  {self.atenciones} atenciones")
         if len(self.lista_tiempos_respuesta) > 0:
             print(f"TIEMPO RESPUESTA PROMEDIO 2: {sum(tiempo for tiempo in self.lista_tiempos_respuesta)/len(self.lista_tiempos_respuesta)}")
         path3 = "Datos Simulacion/Tiempos Respuesta/Con Cola/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"
         path4 = "Datos Simulacion/Tiempos Respuesta/Sin Cola/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"
-        path5 = "Datos Simulacion/Tiempos Respuesta/Total/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"   
+        path5 = "Datos Simulacion/Tiempos Respuesta/Total/t_respuesta_"+str(CASO)+"_"+str(self.n)+".csv"
         self.guardar_tiempos_respuesta(path3, path4, path5)
         print(f"TIEMPO DE RESPUESTA PROMEDIO SIN COLA:{sum(tiempo for tiempo in self.tiempos_sin_cola)/len(self.tiempos_sin_cola)}")
         print(f"Se realizaron un total de {self.cantidad_reasignaciones} de reasignaciones")
@@ -499,16 +501,16 @@ class Simmulacion:
         path1 = "Datos Simulacion/tiempo_promedio_"+str(CASO)+".csv"
         path2 = "Datos Simulacion/tiempo_promedio_sin_cola_"+str(CASO)+".csv"
         # self.guardar_tiempo_promedio(path1,path2)
-        path = "Datos Simulacion/Tiempos Respuesta/Posicion/tiempo_posicion"+str(CASO)+"_"+str(self.n)+".csv"  
+        path = "Datos Simulacion/Tiempos Respuesta/Posicion/tiempo_posicion"+str(CASO)+"_"+str(self.n)+".csv"
         self.guardar_tiempos_posicion(path)
-        
+
         # self.guardar_base_evento("Datos Simulacion/base_evento.csv")
         self.guardar_reasignaciones("Datos Simulacion/reasignaciones.csv")
     def crear_entidades(self):
         self.control = Control()
         self.control.cargar_entidades()
         self.mapa = Mapa()
-    
+
     def guardar_tiempos_respuesta(self, path1, path2, path3):
         with open(path1,"w") as archivo:
             for tiempo in self.lista_tiempos_respuesta:
@@ -541,7 +543,7 @@ class Simmulacion:
         with open(path, "w") as archivo:
             for b in self.control.base_evento:
                 archivo.write(f"{b[0]};{b[1]};{b[2]};{b[3]}\n")
-                
+
         with open("Datos Simulacion/rutas_base_evento.csv", "w") as archivo:
             for ruta in self.control.rutas:
                 for i in range(len(ruta)):
