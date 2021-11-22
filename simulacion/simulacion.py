@@ -262,7 +262,7 @@ class Simmulacion:
         # Seteamos datos que utilizaremos para llevar registro
         self.atenciones = 0 # Se considera el evento entero
         self.cantidad_reasignaciones = 0 #para ver cuantas reasignaciones ocurrieron por la mejora implementada
-
+        self.deltas_reasignaciones = [] #para ver los tiempos que se ahorran
     @property
     def proxima_accion(self):
         # print(self.cola)
@@ -377,6 +377,7 @@ class Simmulacion:
                         if tiempo_centro_evento < tiempo_viaje_faltante:
                             delta = tiempo_viaje_faltante - tiempo_centro_evento
                             mejoras.append([ambulancia_viaje, length[nodo_centro.id], delta, base, evento])
+                            self.deltas_reasignaciones.append(delta)
 
         # Encontramos una mejora
         if len(mejoras) > 0:
@@ -554,7 +555,8 @@ class Simmulacion:
 
     def guardar_reasignaciones(self, path):
         with open(path, "a+") as archivo:
-            archivo.write(f"{self.cantidad_reasignaciones}\n")
+            for delta in self.deltas_reasignaciones:
+                archivo.write(f"{delta}\n")
 
     def guardar_ocupacion_ambulancias(self, path, id_ambulancia, ocupacion):
         with open(path, "a+") as archivo:
