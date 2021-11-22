@@ -339,8 +339,8 @@ class Simmulacion:
                     if elem[1] == base_asignada.ambulancias[id_ambulancia].id:
                         self.tiempos_retorno.remove(elem)
                 self.tiempos_sin_cola.append(int(tiempo_base))
-                self.tiempo_total.apped(int(tiempo_base + evento.tiempo_atencion + evento.tiempo_despacho))
-                self.tiempo_posicion.append(evento.x, evento.y, tiempo_base)
+                self.tiempo_total.append(int(tiempo_base + evento.tiempo_atencion + evento.tiempo_despacho))
+                self.tiempo_posicion.append([evento.x, evento.y, tiempo_base])
                 self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
                 self.tiempos_retorno.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total+tiempo_retorno)), id_ambulancia, base_asignada])
             else:
@@ -443,8 +443,8 @@ class Simmulacion:
                     self.tiempos_retorno.remove(elem)
             self.lista_tiempos_respuesta.append(int(tiempo_base)+evento.tiempo_espera/timedelta(minutes=1))
             self.tiempos_sin_cola.append(tiempo_base)
-            self.tiempo_total.apped(int(tiempo_base + evento.tiempo_atencion + evento.tiempo_despacho+evento.tiempo_espera))
-            self.tiempo_posicion.append(evento.x, evento.y, tiempo_base)
+            self.tiempo_total.append(int(tiempo_base + evento.tiempo_atencion + evento.tiempo_despacho+evento.tiempo_espera))
+            self.tiempo_posicion.append([evento.x, evento.y, tiempo_base])
             self.tiempos_ambulancias.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)), id_ambulancia, base_asignada])
             self.tiempos_retorno.append([self.tiempo_actual + timedelta(minutes = int(tiempo_total)) + timedelta(minutes = int(tiempo_retorno)), id_ambulancia, base_asignada])
         else:
