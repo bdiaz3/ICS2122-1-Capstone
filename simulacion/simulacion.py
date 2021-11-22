@@ -524,7 +524,7 @@ class Simmulacion:
 
     def guardar_tiempos_posicion(self, path):
         with open(path,"w") as archivo:
-            for evento in self.tiempos_posicion:
+            for evento in self.tiempo_posicion:
                 archivo.write(f"{evento[0]}; {evento[1]}; {evento[2]}\n")
 
     def guardar_tiempo_promedio(self, path1, path2):
