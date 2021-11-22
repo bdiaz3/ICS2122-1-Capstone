@@ -3,7 +3,8 @@ from gurobipy import GRB
 import time
 
 m = 26 # Numero de centros
-n = 22117 # LLamadas
+nr = 22117 # LLamadas
+n = 15000
 a = 20 # Ambulancias
 
 M = range(m)
@@ -11,11 +12,11 @@ N = range(n)
 
 #COSTOS
 c = [] 
-with open("Datos/tabla_distancia.csv","r") as distancia:
+with open("Datos/tabla_tiempos_nueva.csv","r") as distancia:
     dist = distancia.readlines()
     for linea in dist:
         c.append(linea.strip().split(",")[1:])
-
+c = c[:n]
 model = gp.Model('Localización de Ambulancias')
 model.setParam('OutputFlag', False) # Turns off solver chatter
 
@@ -42,3 +43,11 @@ print(time.time()- inicio)
 valor_optimo = model.objVal
 
 print( '\n Objectivo modelo completo =', valor_optimo,'\n')
+y = [k for k, v in yf.items()]
+with open("Datos/output_nuevo.csv","w") as output:
+    for i in range(len(y)):
+        if i != len(y)-1:
+            output.write(str(y[i]))
+            output.write(",")
+        else:
+            output.write(str(y[i]))

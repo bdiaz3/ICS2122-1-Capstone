@@ -1,4 +1,4 @@
-from parametros import  TODAS, BASES_MODELO_VIEJO, BASES_MODELO_UNIFORME, NUEVO
+from parametros import  TODAS, NUEVO
 
 def cargar_bases():
     with open("Datos/bases.csv") as bases:
